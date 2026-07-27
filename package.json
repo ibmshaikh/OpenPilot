@@ -1,0 +1,107 @@
+{
+  "name": "openpilot",
+  "productName": "OpenPilot",
+  "version": "1.0.0",
+  "description": "OpenPilot — open-source AI agent harness",
+  "main": "src/main/index.js",
+  "author": "OpenPilot",
+  "license": "MIT",
+  "scripts": {
+    "start": "env -u ELECTRON_RUN_AS_NODE electron .",
+    "postinstall": "node scripts/fix-langgraph-sdk-pnpm.js && electron-rebuild -f -w better-sqlite3",
+    "rebuild": "electron-rebuild -f -w better-sqlite3",
+    "fix:deps": "node scripts/fix-langgraph-sdk-pnpm.js",
+    "pack": "npm run fix:deps && electron-builder --dir",
+    "dist": "npm run fix:deps && electron-builder --mac --win",
+    "dist:mac": "npm run fix:deps && electron-builder --mac",
+    "dist:win": "npm run fix:deps && electron-builder --win",
+    "dist:all": "npm run fix:deps && electron-builder --mac --win"
+  },
+  "dependencies": {
+    "@langchain/core": "^1.2.3",
+    "@langchain/langgraph": "^1.4.8",
+    "@langchain/langgraph-checkpoint": "^1.1.3",
+    "@langchain/langgraph-sdk": "^1.9.27",
+    "@langchain/mcp-adapters": "^1.1.3",
+    "@langchain/openai": "^1.5.5",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/addon-web-links": "^0.12.0",
+    "@xterm/xterm": "^6.0.0",
+    "better-sqlite3": "^12.11.1",
+    "deepagents": "^1.11.1",
+    "dompurify": "^3.4.12",
+    "highlight.js": "^11.11.1",
+    "langchain": "^1.5.3",
+    "langsmith": "^0.8.3",
+    "marked": "^18.0.6",
+    "monaco-editor": "^0.52.2",
+    "playwright": "^1.61.1",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.1",
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.ibmshaikh.onecode",
+    "productName": "OpenPilot",
+    "icon": "assets/icons/icon.png",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist/**",
+      "!graphify-out/**",
+      "!.cursor/**",
+      "!.git/**",
+      "!**/*.map",
+      "!_orphan_*",
+      "!changesNeede.md",
+      "!changesNeeded.md"
+    ],
+    "asarUnpack": [
+      "**/*.node"
+    ],
+    "mac": {
+      "icon": "assets/icons/icon.png",
+      "category": "public.app-category.developer-tools",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["arm64", "x64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["arm64", "x64"]
+        }
+      ],
+      "identity": null
+    },
+    "dmg": {
+      "title": "OpenPilot ${version}"
+    },
+    "win": {
+      "icon": "assets/icons/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "OpenPilot"
+    }
+  }
+}

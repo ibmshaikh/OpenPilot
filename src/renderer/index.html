@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenPilot</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app" id="app">
+      <header class="titlebar" id="titlebar">
+        <div class="titlebar-leading" aria-hidden="true"></div>
+        <div class="titlebar-center">
+          <div class="workspace-picker" id="workspace-picker">
+            <button
+              class="workspace-chip"
+              id="workspace-chip"
+              type="button"
+              title="Workspace"
+              aria-haspopup="dialog"
+              aria-expanded="false"
+              aria-controls="workspace-menu"
+            >
+              <svg class="workspace-chip-icon" width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path
+                  d="M2.5 4.5h4l1.2 1.5H13.5v6.5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z"
+                  stroke="currentColor"
+                  stroke-width="1.3"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span class="workspace-chip-label" id="workspace-label">Select folder</span>
+              <svg class="workspace-chip-chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+                <path d="M2.5 3.5 5 6l2.5-2.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+
+            <div class="workspace-menu" id="workspace-menu" role="dialog" aria-label="Workspace" hidden>
+              <div class="workspace-menu-actions" id="workspace-menu-actions">
+                <button class="workspace-menu-action" type="button" id="workspace-change-btn">
+                  <svg class="workspace-menu-action-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M3.5 8.5V12.5a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1v-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+                    <path d="M8 10.5V3.5M8 3.5 5.5 6M8 3.5 10.5 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  <span>Change workspace…</span>
+                </button>
+                <button class="workspace-menu-action" type="button" id="workspace-open-btn" hidden>
+                  <svg class="workspace-menu-action-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M6.5 3.5H4a1 1 0 0 0-1 1v7.5a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V9.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+                    <path d="M9.5 3.5H13v3.5M13 3.5 8 8.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  <span id="workspace-open-label">Open in Finder</span>
+                </button>
+                <button class="workspace-menu-action" type="button" id="workspace-copy-btn" hidden>
+                  <svg class="workspace-menu-action-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <rect x="5.5" y="5.5" width="7" height="8" rx="1.2" stroke="currentColor" stroke-width="1.3" />
+                    <path d="M10.5 5.5V4.2A1.2 1.2 0 0 0 9.3 3H4.2A1.2 1.2 0 0 0 3 4.2v5.1A1.2 1.2 0 0 0 4.2 10.5H5.5" stroke="currentColor" stroke-width="1.3" />
+                  </svg>
+                  <span>Copy path</span>
+                </button>
+              </div>
+
+              <div class="workspace-menu-divider" id="workspace-menu-divider" hidden></div>
+
+              <div class="workspace-menu-files" id="workspace-menu-files" hidden>
+                <div class="workspace-menu-section-label" id="workspace-menu-section-label">Files in this folder</div>
+                <div class="workspace-menu-files-bar" id="workspace-menu-files-bar">
+                  <button class="workspace-menu-up" type="button" id="workspace-up-btn" title="Go up" aria-label="Go up" hidden>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                      <path d="M6 9V3M6 3 3.5 5.5M6 3l2.5 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+                  <span class="workspace-menu-crumb" id="workspace-menu-crumb">Workspace root</span>
+                </div>
+                <div class="workspace-menu-list" id="workspace-menu-list" role="list"></div>
+                <div class="workspace-menu-empty" id="workspace-menu-empty" hidden>
+                  <p class="workspace-menu-empty-title">Empty folder</p>
+                  <p class="workspace-menu-empty-body">No files in this directory.</p>
+                </div>
+              </div>
+
+              <div class="workspace-menu-unset" id="workspace-menu-unset">
+                <p class="workspace-menu-empty-title">No workspace selected</p>
+                <p class="workspace-menu-empty-body">Pick a folder so the agent can read and edit project files.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="titlebar-trailing" aria-hidden="true"></div>
+      </header>
+
+      <div class="app-body">
+      <aside class="sidebar" id="sidebar" aria-label="Chat history">
+        <div class="sidebar-top">
+          <img
+            class="sidebar-logo"
+            src="../../assets/icons/openpilot-wordmark.svg"
+            alt="OpenPilot"
+            width="120"
+            height="26"
+            draggable="false"
+          />
+          <button class="settings-btn" id="settings-btn" type="button" title="Settings" aria-label="Settings">
+            <svg class="sidebar-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>Settings</span>
+          </button>
+          <button class="new-chat-btn" id="new-chat-btn" type="button" title="New chat">
+            <svg class="sidebar-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path d="M12 8v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M9 11h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>New chat</span>
+          </button>
+        </div>
+        <div class="chat-list" id="chat-list" role="list"></div>
+        <div
+          class="sidebar-resizer"
+          id="sidebar-resizer"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize chat history"
+          tabindex="0"
+        ></div>
+      </aside>
+
+      <div class="app-main">
+        <aside class="todo-panel" id="todo-panel" hidden aria-label="Task progress">
+          <header class="todo-panel-header">
+            <div class="todo-panel-title-row">
+              <span class="todo-panel-title">Tasks</span>
+              <span class="todo-panel-count" id="todo-panel-count">0/0</span>
+            </div>
+            <div class="todo-progress-track" aria-hidden="true">
+              <div class="todo-progress-fill" id="todo-progress-fill"></div>
+            </div>
+          </header>
+          <ul class="todo-panel-list" id="todo-panel-list"></ul>
+        </aside>
+
+        <main class="shell" id="shell">
+          <section class="prompt" aria-label="Agent prompt">
+            <div class="thread" id="messages" role="log" aria-live="polite"></div>
+
+        <div class="run-status" id="run-status" hidden>
+          <button class="run-status-btn" id="run-status-btn" type="button" title="Stop agent">
+            <span class="run-status-dot" aria-hidden="true"></span>
+            <span class="run-status-label">Running</span>
+            <span class="run-status-stop" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <div class="dock" id="dock">
+          <div class="composer-setup-banner" id="composer-setup-banner" hidden>
+            <button type="button" class="composer-setup-banner-btn" id="composer-setup-banner-btn">
+              <span class="composer-setup-banner-icon" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.3" />
+                  <path d="M8 5v3.5M8 10.75v.1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                </svg>
+              </span>
+              <span class="composer-setup-banner-copy">
+                <strong>Configure a model to start chatting</strong>
+                <span>Add an OpenAI-compatible endpoint in Settings, then you can send messages here.</span>
+              </span>
+              <span class="composer-setup-banner-action">Open Settings</span>
+            </button>
+          </div>
+          <form class="composer" id="composer">
+            <div class="composer-attachments" id="composer-attachments" hidden></div>
+            <input
+              type="file"
+              id="attach-input"
+              accept="image/*"
+              multiple
+              hidden
+            />
+            <div class="composer-input-wrap">
+              <div
+                id="message-input"
+                class="composer-input is-empty"
+                contenteditable="true"
+                role="textbox"
+                aria-multiline="true"
+                aria-label="Prompt"
+                data-placeholder="Ask anything — type / for skills"
+              ></div>
+              <div class="skills-slash-menu" id="skills-slash-menu" hidden>
+                <div class="skills-slash-header">Skills</div>
+                <div class="skills-slash-empty" id="skills-slash-empty" hidden>No matching skills</div>
+                <div class="skills-slash-list" id="skills-slash-list" role="listbox"></div>
+              </div>
+            </div>
+
+            <div class="composer-footer">
+              <div class="composer-tools">
+                <button
+                  type="button"
+                  class="attach-btn"
+                  id="attach-btn"
+                  title="Attach image"
+                  aria-label="Attach image"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path
+                      d="M8.2 3.4 4.1 7.5a2.1 2.1 0 1 0 3 3l4.5-4.5a1.4 1.4 0 0 0-2-2L5.2 8.4"
+                      stroke="currentColor"
+                      stroke-width="1.3"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+                <div class="model-picker" id="model-picker">
+                  <button
+                    class="model-chip"
+                    type="button"
+                    id="model-chip"
+                    title="Select model"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                    aria-controls="model-menu"
+                  >
+                    <svg class="plus" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+                      <path d="M6 2v8M2 6h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                    <span id="model-label">No model</span>
+                    <svg class="chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+                      <path d="M2.5 3.5 5 6l2.5-2.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+
+                  <div class="model-menu" id="model-menu" role="listbox" hidden>
+                    <div class="model-menu-empty" id="model-menu-empty">No models yet. Add one in Settings.</div>
+                    <div class="model-menu-list" id="model-menu-list"></div>
+                  </div>
+                </div>
+
+                <div class="mcp-picker" id="mcp-picker">
+                  <button
+                    class="mcp-chip"
+                    type="button"
+                    id="mcp-pill"
+                    aria-pressed="false"
+                    aria-haspopup="dialog"
+                    aria-expanded="false"
+                    aria-controls="mcp-menu"
+                    title="MCP tools for this chat"
+                  >
+                    <span class="mcp-chip-dot" aria-hidden="true"></span>
+                    <span id="mcp-pill-label">MCP</span>
+                    <svg class="chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+                      <path d="M2.5 3.5 5 6l2.5-2.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+
+                  <div class="mcp-menu" id="mcp-menu" role="dialog" aria-label="MCP tools" hidden>
+                    <div class="mcp-menu-header">
+                      <div class="mcp-switch-row">
+                        <div class="mcp-switch-copy">
+                          <p class="mcp-switch-title">MCP tools</p>
+                          <p class="mcp-menu-hint">Let the agent use connected MCP servers for this chat.</p>
+                        </div>
+                        <button
+                          type="button"
+                          class="mcp-switch"
+                          id="mcp-enabled-toggle"
+                          role="switch"
+                          aria-checked="false"
+                          aria-label="Enable MCP tools"
+                        >
+                          <span class="mcp-switch-thumb" aria-hidden="true"></span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="mcp-menu-section">
+                      <div class="mcp-menu-section-bar">
+                        <span class="mcp-menu-section-label">Servers</span>
+                        <div class="mcp-menu-section-actions" id="mcp-menu-actions" hidden>
+                          <button type="button" class="mcp-text-btn" id="mcp-select-all">All</button>
+                          <button type="button" class="mcp-text-btn" id="mcp-select-none">None</button>
+                        </div>
+                      </div>
+                      <div class="mcp-menu-list" id="mcp-menu-list"></div>
+                      <div class="mcp-menu-empty" id="mcp-menu-empty">
+                        <p class="mcp-menu-empty-title">No servers connected</p>
+                        <p class="mcp-menu-empty-body">Add servers in Settings, wait until they show as connected, then enable them here.</p>
+                      </div>
+                    </div>
+
+                    <button type="button" class="mcp-menu-settings" id="mcp-menu-open-settings">
+                      Open MCP settings
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  class="polish-btn"
+                  id="polish-chip"
+                  title="Polish prompt with AI"
+                  aria-label="Polish prompt with AI"
+                >
+                  <svg class="polish-btn-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path
+                      d="M7 1.2 7.85 5.15 11.8 6 7.85 6.85 7 10.8 6.15 6.85 2.2 6 6.15 5.15 7 1.2Z"
+                      stroke="currentColor"
+                      stroke-width="1.2"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M11.2 8.6 11.55 10.05 13 10.4 11.55 10.75 11.2 12.2 10.85 10.75 9.4 10.4 10.85 10.05 11.2 8.6Z"
+                      stroke="currentColor"
+                      stroke-width="1.1"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                  <span id="polish-chip-label">Polish</span>
+                </button>
+              </div>
+
+              <div class="composer-actions">
+                <div class="context-usage" id="context-usage">
+                  <button
+                    type="button"
+                    class="context-ring-btn"
+                    id="context-ring-btn"
+                    aria-label="Context usage"
+                    aria-haspopup="dialog"
+                    aria-expanded="false"
+                    aria-controls="context-usage-popup"
+                    title="Context usage"
+                  >
+                    <svg class="context-ring" viewBox="0 0 28 28" aria-hidden="true">
+                      <circle class="context-ring-track" cx="14" cy="14" r="11" />
+                      <circle
+                        class="context-ring-fill"
+                        id="context-ring-fill"
+                        cx="14"
+                        cy="14"
+                        r="11"
+                        pathLength="100"
+                      />
+                    </svg>
+                  </button>
+
+                  <div
+                    class="context-usage-popup"
+                    id="context-usage-popup"
+                    role="dialog"
+                    aria-label="Context Usage"
+                    hidden
+                  >
+                    <div class="context-usage-header">
+                      <h3 class="context-usage-title">Context Usage</h3>
+                      <button
+                        type="button"
+                        class="context-usage-close"
+                        id="context-usage-close"
+                        aria-label="Close context usage"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                          <path
+                            d="M3 3l6 6M9 3 3 9"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            stroke-linecap="round"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                    <div class="context-usage-summary">
+                      <span class="context-usage-percent" id="context-usage-percent">0% Full</span>
+                      <span class="context-usage-tokens" id="context-usage-tokens">~0 / — Tokens</span>
+                    </div>
+                    <div class="context-usage-bar" id="context-usage-bar" aria-hidden="true"></div>
+                    <ul class="context-usage-list" id="context-usage-list"></ul>
+                  </div>
+                </div>
+
+                <button
+                  class="send-btn"
+                  type="submit"
+                  id="send-btn"
+                  aria-label="Send"
+                  title="Send"
+                >
+                  <svg class="send-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path
+                      d="M3.2 8.2 12.5 3.5l-2.8 9.1-1.7-3.1-3.1-1.3Z"
+                      stroke="currentColor"
+                      stroke-width="1.4"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                  <span class="stop-icon" aria-hidden="true"></span>
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <div class="actions" id="actions">
+            <button class="action-pill" type="button" id="plan-pill">
+              <span>Plan New Idea</span>
+              <kbd>⇧Tab</kbd>
+            </button>
+            <button class="action-pill" type="button" id="multitask-pill">Multitask</button>
+          </div>
+        </div>
+      </section>
+        </main>
+      </div>
+      </div>
+    </div>
+
+    <div class="onboarding" id="onboarding" hidden>
+      <div class="onboarding-card" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+        <div class="onboarding-progress" aria-hidden="true">
+          <span class="onboarding-dot is-active" data-onboard-dot></span>
+          <span class="onboarding-dot" data-onboard-dot></span>
+          <span class="onboarding-dot" data-onboard-dot></span>
+          <span class="onboarding-dot" data-onboard-dot></span>
+        </div>
+
+        <section class="onboarding-step" data-onboard-step="welcome">
+          <img
+            class="onboarding-logo"
+            src="../../assets/icons/openpilot-wordmark.svg"
+            alt="OpenPilot"
+            width="148"
+            height="32"
+            draggable="false"
+          />
+          <h1 class="onboarding-title" id="onboarding-title">Your local AI coding agent</h1>
+          <p class="onboarding-lead">
+            OpenPilot helps you explore code, edit files, run commands, and ship work from a chat —
+            with your own models and your own folders.
+          </p>
+          <ul class="onboarding-points">
+            <li>
+              <span class="onboarding-point-label">Chat-first</span>
+              <span>Describe the task; the agent reads, edits, and runs tools in your project.</span>
+            </li>
+            <li>
+              <span class="onboarding-point-label">Your models</span>
+              <span>Bring any OpenAI-compatible API — OpenAI, local servers, or custom gateways.</span>
+            </li>
+            <li>
+              <span class="onboarding-point-label">Workspace aware</span>
+              <span>Point OpenPilot at a folder so it can work with real files on disk.</span>
+            </li>
+          </ul>
+        </section>
+
+        <section class="onboarding-step" data-onboard-step="model" hidden>
+          <p class="onboarding-kicker">Step 1 of 3</p>
+          <h2 class="onboarding-title">Connect a model</h2>
+          <p class="onboarding-lead">
+            Add an OpenAI-compatible endpoint. You can skip this and configure it later from Settings.
+          </p>
+          <form class="onboarding-form" id="onboarding-model-form">
+            <label class="field">
+              <span class="label">Model name</span>
+              <input name="modelName" type="text" placeholder="e.g. gpt-4o-mini" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span class="label">Base URL</span>
+              <input name="baseUrl" type="url" placeholder="https://api.openai.com/v1" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span class="label">API key</span>
+              <input name="apiKey" type="password" placeholder="sk-..." autocomplete="off" />
+            </label>
+            <label class="field">
+              <span class="label">Display name</span>
+              <input name="displayName" type="text" placeholder="e.g. My GPT" autocomplete="off" />
+            </label>
+            <p class="form-error" id="onboarding-model-error" hidden></p>
+            <p class="onboarding-status" id="onboarding-model-status" hidden></p>
+            <button type="submit" class="btn secondary">Save model</button>
+          </form>
+        </section>
+
+        <section class="onboarding-step" data-onboard-step="workspace" hidden>
+          <p class="onboarding-kicker">Step 2 of 3</p>
+          <h2 class="onboarding-title">Choose a workspace</h2>
+          <p class="onboarding-lead">
+            Pick the project folder the agent should read and edit. You can change this anytime from the title bar.
+          </p>
+          <div class="onboarding-workspace">
+            <div class="onboarding-workspace-path is-empty" id="onboarding-workspace-path">No folder selected yet</div>
+            <button type="button" class="btn secondary" id="onboarding-workspace-pick">Select folder…</button>
+          </div>
+        </section>
+
+        <section class="onboarding-step" data-onboard-step="tinyfish" hidden>
+          <p class="onboarding-kicker">Step 3 of 3</p>
+          <h2 class="onboarding-title">Optional: TinyFish web search</h2>
+          <p class="onboarding-lead">
+            TinyFish lets the agent search the live web and fetch page content when it needs current docs,
+            versions, or facts outside your workspace.
+          </p>
+          <div class="onboarding-callout">
+            <span class="onboarding-badge">Free</span>
+            <p>
+              Search and Fetch do not use credits. Get a key at
+              <a href="https://agent.tinyfish.ai/api-keys" target="_blank" rel="noreferrer">agent.tinyfish.ai/api-keys</a>
+              — you can enable this later in Settings if you prefer.
+            </p>
+          </div>
+          <form class="onboarding-form" id="onboarding-tinyfish-form">
+            <label class="toggle">
+              <input type="checkbox" id="onboarding-tinyfish-enabled" />
+              <span>Enable web search for chat</span>
+            </label>
+            <label class="field">
+              <span class="label">API key</span>
+              <input id="onboarding-tinyfish-api-key" type="password" placeholder="sk-tinyfish-..." autocomplete="off" />
+            </label>
+            <p class="form-error" id="onboarding-tinyfish-error" hidden></p>
+            <p class="onboarding-status" id="onboarding-tinyfish-status" hidden></p>
+            <button type="submit" class="btn secondary">Save TinyFish</button>
+          </form>
+        </section>
+
+        <footer class="onboarding-footer">
+          <button type="button" class="btn ghost" id="onboarding-skip">Skip setup</button>
+          <div class="onboarding-footer-actions">
+            <button type="button" class="btn secondary" id="onboarding-back" hidden>Back</button>
+            <button type="button" class="btn primary" id="onboarding-next">Next</button>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="settings-modal" hidden>
+      <div class="modal settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <header class="modal-header">
+          <div class="modal-header-copy">
+            <h2 id="settings-title">Settings</h2>
+            <p>Preferences for models, tools, and memory.</p>
+          </div>
+          <button class="modal-close" id="settings-close" type="button" aria-label="Close settings">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+          </button>
+        </header>
+
+        <div class="modal-main">
+          <nav class="settings-nav" aria-label="Settings sections">
+            <button class="nav-item active" type="button" data-section="models">
+              <svg class="nav-item-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 3 4 7.5v9L12 21l8-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                <path d="M12 12 4 7.5M12 12l8-4.5M12 12v9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+              </svg>
+              <span>Models</span>
+            </button>
+            <button class="nav-item" type="button" data-section="usage">
+              <svg class="nav-item-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 19h16M7 16V9M12 16V5M17 16v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+              </svg>
+              <span>Usage</span>
+            </button>
+            <button class="nav-item" type="button" data-section="skills">
+              <svg class="nav-item-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M8 4h8l1 3H7l1-3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                <path d="M6 7h12v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+              </svg>
+              <span>Skills</span>
+            </button>
+            <button class="nav-item" type="button" data-section="memory">
+              <svg class="nav-item-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 8.5A3.5 3.5 0 0 1 8.5 5h7A3.5 3.5 0 0 1 19 8.5v7A3.5 3.5 0 0 1 15.5 19h-7A3.5 3.5 0 0 1 5 15.5v-7Z" stroke="currentColor" stroke-width="1.7" />
+                <path d="M9 9.5h6M9 12.5h6M9 15.5h3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+              </svg>
+              <span>Memory</span>
+            </button>
+            <button class="nav-item" type="button" data-section="agent">
+              <svg class="nav-item-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                <circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.7" />
+              </svg>
+              <span>Agent</span>
+            </button>
+            <button class="nav-item" type="button" data-section="tinyfish">
+              <svg class="nav-item-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.7" />
+                <path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+              </svg>
+              <span>TinyFish</span>
+            </button>
+            <button class="nav-item" type="button" data-section="mcp">
+              <svg class="nav-item-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M8 8h8v8H8V8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                <path d="M12 3v5M12 16v5M3 12h5M16 12h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+              </svg>
+              <span>MCP</span>
+            </button>
+          </nav>
+
+          <div class="modal-body">
+            <section class="settings-panel" id="panel-models" data-panel="models">
+              <div class="panel-heading">
+                <div>
+                  <h3 class="panel-title">Models</h3>
+                  <p class="panel-desc">OpenAI-compatible endpoints the agent can use in chat.</p>
+                </div>
+                <button type="button" class="btn primary" id="add-model-btn">Add model</button>
+              </div>
+
+              <div class="model-list" id="model-list"></div>
+              <p class="empty-models" id="empty-models">No models yet. Add one to get started.</p>
+            </section>
+
+            <section class="settings-panel" id="panel-usage" data-panel="usage" hidden>
+              <div class="panel-heading">
+                <div>
+                  <h3 class="panel-title">Usage</h3>
+                  <p class="panel-desc">Token usage for final main-agent answers, by model.</p>
+                </div>
+                <div class="panel-heading-actions">
+                  <button type="button" class="btn secondary" id="usage-refresh-btn">Refresh</button>
+                  <button type="button" class="btn secondary" id="usage-reset-btn">Reset</button>
+                </div>
+              </div>
+
+              <div class="usage-block">
+                <div class="usage-block-header">
+                  <h4 class="usage-block-title">This session</h4>
+                  <p class="usage-block-desc">Since OpenPilot was launched.</p>
+                </div>
+                <div class="usage-table-wrap">
+                  <table class="usage-table" id="usage-session-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Model</th>
+                        <th scope="col">Input</th>
+                        <th scope="col">Output</th>
+                        <th scope="col">Cache hit</th>
+                        <th scope="col">Cache miss</th>
+                        <th scope="col">Requests</th>
+                        <th scope="col">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody id="usage-session-body"></tbody>
+                    <tfoot id="usage-session-foot"></tfoot>
+                  </table>
+                </div>
+                <p class="empty-models" id="usage-session-empty">No token usage in this session yet.</p>
+              </div>
+
+              <div class="usage-block">
+                <div class="usage-block-header">
+                  <h4 class="usage-block-title">Lifetime</h4>
+                  <p class="usage-block-desc">All chats, across every session.</p>
+                </div>
+                <div class="usage-table-wrap">
+                  <table class="usage-table" id="usage-lifetime-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Model</th>
+                        <th scope="col">Input</th>
+                        <th scope="col">Output</th>
+                        <th scope="col">Cache hit</th>
+                        <th scope="col">Cache miss</th>
+                        <th scope="col">Requests</th>
+                        <th scope="col">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody id="usage-lifetime-body"></tbody>
+                    <tfoot id="usage-lifetime-foot"></tfoot>
+                  </table>
+                </div>
+                <p class="empty-models" id="usage-lifetime-empty">No lifetime token usage recorded yet.</p>
+              </div>
+
+              <p class="panel-hint" id="usage-estimate-hint" hidden>
+                Some providers omit usage metadata. Missing values are estimated from text length (~4 characters per token); cache fields stay 0 in that case.
+              </p>
+            </section>
+
+            <section class="settings-panel" id="panel-skills" data-panel="skills" hidden>
+              <div class="panel-heading">
+                <div>
+                  <h3 class="panel-title">Skills</h3>
+                  <p class="panel-desc">Reusable playbooks the agent can load. Project skills override user skills with the same name.</p>
+                </div>
+                <button type="button" class="btn primary" id="add-skill-btn">Add skill</button>
+              </div>
+
+              <div class="skills-path-row">
+                <div class="skills-path-meta">
+                  <span class="label">User skills</span>
+                  <code id="skills-user-path" class="skills-config-path">—</code>
+                </div>
+                <button type="button" class="btn secondary" id="skills-reveal-user-btn">Reveal</button>
+              </div>
+
+              <div class="skills-path-row">
+                <div class="skills-path-meta">
+                  <span class="label">Project skills</span>
+                  <code id="skills-project-path" class="skills-config-path">—</code>
+                </div>
+                <button type="button" class="btn secondary" id="skills-reveal-project-btn">Reveal</button>
+              </div>
+
+              <div class="skill-list" id="skill-list"></div>
+              <p class="empty-models" id="empty-skills">No skills yet. Add a user or project skill to get started.</p>
+            </section>
+
+            <section class="settings-panel" id="panel-memory" data-panel="memory" hidden>
+              <div class="panel-heading">
+                <div>
+                  <h3 class="panel-title">Memory</h3>
+                  <p class="panel-desc">Load <code>AGENTS.md</code> into the system prompt so the agent can remember lasting preferences.</p>
+                </div>
+              </div>
+
+              <form class="settings-form" id="memory-form">
+                <label class="toggle">
+                  <input type="checkbox" id="memory-enabled" />
+                  <span>Enable long-term memory</span>
+                </label>
+
+                <label class="toggle">
+                  <input type="checkbox" id="memory-user-enabled" />
+                  <span>User memory (all projects)</span>
+                </label>
+
+                <label class="toggle">
+                  <input type="checkbox" id="memory-project-enabled" />
+                  <span>Project memory (this workspace)</span>
+                </label>
+
+                <div class="skills-paths">
+                  <div class="skills-path-row">
+                    <div class="skills-path-meta">
+                      <span class="label">User AGENTS.md</span>
+                      <code id="memory-user-path" class="skills-config-path">—</code>
+                    </div>
+                    <button type="button" class="btn secondary" id="memory-reveal-user-btn">Reveal</button>
+                  </div>
+                  <div class="skills-path-row">
+                    <div class="skills-path-meta">
+                      <span class="label">Project AGENTS.md</span>
+                      <code id="memory-project-path" class="skills-config-path">—</code>
+                    </div>
+                    <button type="button" class="btn secondary" id="memory-reveal-project-btn">Reveal</button>
+                  </div>
+                </div>
+
+                <p class="panel-hint">
+                  User file: <code>~/.onecode/memory/AGENTS.md</code>.
+                  Project file: <code>.deepagents/AGENTS.md</code> in the workspace.
+                </p>
+
+                <p class="form-error" id="memory-form-error" hidden></p>
+
+                <div class="settings-form-actions">
+                  <button type="submit" class="btn primary" id="memory-save-btn">Save Memory</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="settings-panel" id="panel-agent" data-panel="agent" hidden>
+              <div class="panel-heading">
+                <div>
+                  <h3 class="panel-title">Agent</h3>
+                  <p class="panel-desc">Safety controls for shell commands and file edits in the chat timeline.</p>
+                </div>
+              </div>
+
+              <form class="settings-form" id="agent-form">
+                <label class="toggle">
+                  <input type="checkbox" id="enable-all-permissions" />
+                  <span>Enable all permissions</span>
+                </label>
+                <p class="panel-hint">
+                  When checked, shell commands and file edits run without asking for approval.
+                  When unchecked, each action shows an Allow / Deny card in chat
+                  (or Allow all for that chat session).
+                </p>
+                <p class="form-error" id="agent-form-error" hidden></p>
+                <div class="settings-form-actions">
+                  <button type="submit" class="btn primary" id="agent-save-btn">Save Agent</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="settings-panel" id="panel-tinyfish" data-panel="tinyfish" hidden>
+              <div class="panel-heading">
+                <div>
+                  <h3 class="panel-title">TinyFish</h3>
+                  <p class="panel-desc">Live web search and page fetch when the agent needs current information.</p>
+                </div>
+              </div>
+
+              <form class="settings-form" id="tinyfish-form">
+                <label class="toggle">
+                  <input type="checkbox" id="tinyfish-enabled" />
+                  <span>Enable web search for chat</span>
+                </label>
+
+                <label class="field">
+                  <span class="label">API Key</span>
+                  <input
+                    id="tinyfish-api-key"
+                    type="password"
+                    placeholder="sk-tinyfish-..."
+                    autocomplete="off"
+                  />
+                </label>
+
+                <p class="panel-hint">
+                  Get a key at
+                  <a href="https://agent.tinyfish.ai/api-keys" target="_blank" rel="noreferrer">agent.tinyfish.ai/api-keys</a>.
+                  Search and Fetch do not use credits.
+                </p>
+
+                <p class="form-error" id="tinyfish-form-error" hidden></p>
+
+                <div class="settings-form-actions">
+                  <button type="submit" class="btn primary" id="tinyfish-save-btn">Save TinyFish</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="settings-panel" id="panel-mcp" data-panel="mcp" hidden>
+              <div class="panel-heading">
+                <div>
+                  <h3 class="panel-title">MCP</h3>
+                  <p class="panel-desc">External tool servers from your config file.</p>
+                </div>
+                <div class="panel-heading-actions">
+                  <button type="button" class="btn secondary" id="mcp-reload-btn">Retest</button>
+                  <button type="button" class="btn secondary" id="mcp-reveal-config-btn">Reveal</button>
+                  <button type="button" class="btn primary" id="mcp-open-config-btn">Edit config</button>
+                </div>
+              </div>
+
+              <div class="mcp-path-row">
+                <span class="label">Config</span>
+                <code id="mcp-config-path" class="mcp-config-path" title="">—</code>
+              </div>
+
+              <div class="mcp-banner" id="mcp-banner" hidden></div>
+
+              <div class="mcp-section-label">Servers</div>
+              <div class="mcp-server-list" id="mcp-server-list"></div>
+              <p class="empty-models" id="mcp-empty">No servers yet. Use Edit config to add entries under <code>mcpServers</code>.</p>
+
+              <details class="mcp-logs-details" id="mcp-logs-details">
+                <summary class="mcp-logs-summary">
+                  <span>Logs</span>
+                  <button type="button" class="btn secondary mcp-logs-refresh" id="mcp-refresh-logs-btn">Refresh</button>
+                </summary>
+                <pre class="mcp-logs-body" id="mcp-logs-body">No MCP logs yet.</pre>
+              </details>
+            </section>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <p class="status" id="settings-status" hidden>Saved.</p>
+          <div class="modal-actions">
+            <button type="button" class="btn secondary" id="settings-cancel">Close</button>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <div class="modal-backdrop nested" id="model-form-modal" hidden>
+      <div class="modal model-form-modal" role="dialog" aria-modal="true" aria-labelledby="model-form-title">
+        <header class="modal-header">
+          <div>
+            <h2 id="model-form-title">Add new model</h2>
+            <p id="model-form-subtitle">Enter OpenAI-compatible endpoint details.</p>
+          </div>
+          <button class="modal-close" id="model-form-close" type="button" aria-label="Close model form">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+          </button>
+        </header>
+
+        <form class="modal-body model-form" id="model-form">
+          <input type="hidden" id="model-id" value="" />
+
+          <label class="field">
+            <span class="label">Model Name</span>
+            <input id="model-name" type="text" placeholder="e.g. gpt-4o-mini" required />
+          </label>
+
+          <label class="field">
+            <span class="label">OpenAI Compatible base URL</span>
+            <input id="model-base-url" type="url" placeholder="https://api.openai.com/v1" required />
+          </label>
+
+          <label class="field">
+            <span class="label">API Key</span>
+            <input id="model-api-key" type="password" placeholder="sk-..." required autocomplete="off" />
+          </label>
+
+          <label class="field">
+            <span class="label">Model Display Name</span>
+            <input id="model-display-name" type="text" placeholder="e.g. My Custom GPT" required />
+          </label>
+
+          <p class="form-error" id="model-form-error" hidden></p>
+
+          <div class="modal-actions form-actions">
+            <button type="button" class="btn secondary" id="model-form-cancel">Cancel</button>
+            <button type="submit" class="btn primary" id="model-form-save">Save model</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-backdrop nested" id="skill-form-modal" hidden>
+      <div class="modal model-form-modal skill-form-modal" role="dialog" aria-modal="true" aria-labelledby="skill-form-title">
+        <header class="modal-header">
+          <div>
+            <h2 id="skill-form-title">Add skill</h2>
+            <p id="skill-form-subtitle">Create a SKILL.md the agent can discover and follow.</p>
+          </div>
+          <button class="modal-close" id="skill-form-close" type="button" aria-label="Close skill form">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
+          </button>
+        </header>
+
+        <form class="modal-body model-form" id="skill-form">
+          <input type="hidden" id="skill-original-name" value="" />
+          <input type="hidden" id="skill-original-scope" value="" />
+
+          <fieldset class="field skill-scope-field">
+            <legend class="label">Scope</legend>
+            <div class="skill-scope-options">
+              <label class="skill-scope-option">
+                <input type="radio" name="skill-scope" id="skill-scope-user" value="user" checked />
+                <span>User (~/.onecode/skills)</span>
+              </label>
+              <label class="skill-scope-option">
+                <input type="radio" name="skill-scope" id="skill-scope-project" value="project" />
+                <span>Project (.onecode/skills)</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <label class="field">
+            <span class="label">Name</span>
+            <input id="skill-name" type="text" placeholder="e.g. code-review" required maxlength="64" />
+          </label>
+
+          <label class="field">
+            <span class="label">Description</span>
+            <textarea
+              id="skill-description"
+              rows="3"
+              maxlength="1024"
+              placeholder="What it does and when to use it (shown to the agent for discovery)."
+              required
+            ></textarea>
+          </label>
+
+          <label class="field">
+            <span class="label">Instructions</span>
+            <textarea
+              id="skill-body"
+              rows="10"
+              placeholder="# Skill title&#10;&#10;Step-by-step guidance for the agent…"
+            ></textarea>
+          </label>
+
+          <p class="form-error" id="skill-form-error" hidden></p>
+
+          <div class="modal-actions form-actions">
+            <button type="button" class="btn secondary" id="skill-form-cancel">Cancel</button>
+            <button type="submit" class="btn primary" id="skill-form-save">Save skill</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="../../node_modules/marked/lib/marked.umd.js"></script>
+    <script src="../../node_modules/dompurify/dist/purify.min.js"></script>
+    <script src="./vendor/highlight.min.js"></script>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

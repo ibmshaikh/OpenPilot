@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 56" fill="none" role="img" aria-label="OpenPilot">
+  <title>OpenPilot</title>
+  <text
+    x="130"
+    y="40"
+    text-anchor="middle"
+    font-family="SF Pro Display, 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif"
+    font-size="42"
+    font-weight="600"
+    letter-spacing="-0.03em"
+  >
+    <tspan fill="#A4AAB4">Open</tspan><tspan fill="#FFFFFF">Pilot</tspan>
+  </text>
+</svg>

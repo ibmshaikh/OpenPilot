@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Electron build output
+dist/
+
+# Logs
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Playwright
+playwright-report/
+ms-playwright/
+test-results/
+
+# Generated graphify knowledge graph
+graphify-out/
+
+# Local OpenPilot / OneCode data
+.onecode/
+
+# Local notes (not source)
+/changesNeeded.md
+/changesNeede.md
+/generatedFiles.md
