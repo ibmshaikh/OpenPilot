@@ -9,17 +9,11 @@ on:
 permissions:
   contents: write
 
+# Publish mac then Windows sequentially so electron-builder does not race
+# creating the same GitHub Release (422 already_exists).
 jobs:
-  release:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-latest
-            script: release:mac
-          - os: windows-latest
-            script: release:win
-    runs-on: ${{ matrix.os }}
+  release-mac:
+    runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,7 +27,29 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build and publish
+      - name: Build and publish macOS
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run ${{ matrix.script }}
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npm run release:mac
+
+  release-win:
+    needs: release-mac
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and publish Windows
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run release:win
