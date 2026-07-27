@@ -29,9 +29,10 @@ function writeYaml(fileName, files, primary) {
   fs.writeFileSync(path.join(dist, fileName), `${lines.join("\n")}\n`);
 }
 
-const macZipArm = `OpenPilot-${version}-arm64-mac.zip`;
-const macZipX64 = `OpenPilot-${version}-mac.zip`;
-const winSetup = `OpenPilot-Setup-${version}.exe`;
+// Filenames intentionally omit the version — version is shown only in Settings → About.
+const macZipArm = "OpenPilot-arm64.zip";
+const macZipX64 = "OpenPilot-x64.zip";
+const winSetup = "OpenPilot-Setup.exe";
 
 const macFiles = [macZipArm, macZipX64]
   .filter((name) => fs.existsSync(path.join(dist, name)))

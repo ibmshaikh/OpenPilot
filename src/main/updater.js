@@ -28,14 +28,14 @@ function setupAutoUpdater() {
     console.log(`Update available: ${info.version}`);
   });
 
-  updater.on("update-downloaded", async (info) => {
+  updater.on("update-downloaded", async () => {
     if (promptedForRestart) return;
     promptedForRestart = true;
 
     const { response } = await dialog.showMessageBox({
       type: "info",
       title: "Update ready",
-      message: `OpenPilot ${info.version} is ready to install.`,
+      message: "A new OpenPilot update is ready to install.",
       detail: "Restart now to apply the update, or continue and it will install on quit.",
       buttons: ["Restart now", "Later"],
       defaultId: 0,

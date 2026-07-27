@@ -24,7 +24,7 @@ npm run dist:mac
 npm run dist:win
 ```
 
-Output goes to `dist/`. macOS builds are unsigned by default. Building Windows from macOS requires Wine (`brew install --cask wine-stable`).
+Output goes to `dist/`. Artifact filenames omit the version (for example `OpenPilot-arm64.dmg`, `OpenPilot-Setup.exe`). The version is shown only in **Settings → About**. macOS builds are unsigned by default. Building Windows from macOS requires Wine (`brew install --cask wine-stable`).
 
 ## Auto-updates (GitHub Releases)
 

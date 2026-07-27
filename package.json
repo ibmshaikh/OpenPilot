@@ -1,7 +1,7 @@
 {
   "name": "openpilot",
   "productName": "OpenPilot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "OpenPilot — open-source AI agent harness",
   "main": "src/main/index.js",
   "author": "OpenPilot",
@@ -57,6 +57,7 @@
     "appId": "com.ibmshaikh.onecode",
     "productName": "OpenPilot",
     "icon": "assets/icons/icon.png",
+    "artifactName": "${productName}-${arch}.${ext}",
     "directories": {
       "output": "dist"
     },
@@ -105,7 +106,7 @@
       "identity": null
     },
     "dmg": {
-      "title": "OpenPilot ${version}"
+      "title": "OpenPilot"
     },
     "win": {
       "icon": "assets/icons/icon.png",
@@ -129,7 +130,11 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "OpenPilot"
+      "shortcutName": "OpenPilot",
+      "artifactName": "${productName}-Setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable.${ext}"
     }
   }
 }
