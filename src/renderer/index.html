@@ -104,6 +104,26 @@
             height="26"
             draggable="false"
           />
+          <button
+            class="update-available-btn"
+            id="sidebar-update-btn"
+            type="button"
+            title="Update OpenPilot"
+            aria-label="Update OpenPilot"
+            hidden
+          >
+            <svg class="sidebar-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span id="sidebar-update-label">Update available</span>
+            <span class="update-available-dot" aria-hidden="true"></span>
+          </button>
           <button class="settings-btn" id="settings-btn" type="button" title="Settings" aria-label="Settings">
             <svg class="sidebar-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
@@ -912,8 +932,17 @@
                   <p class="usage-block-desc">Check GitHub Releases for a newer build.</p>
                 </div>
                 <div class="about-update-actions">
-                  <button type="button" class="btn primary" id="about-check-update-btn">Check for updates</button>
+                  <div class="about-update-buttons">
+                    <button type="button" class="btn secondary" id="about-check-update-btn">Check for updates</button>
+                    <button type="button" class="btn primary" id="about-install-update-btn" hidden>Update OpenPilot</button>
+                  </div>
                   <p class="panel-hint" id="about-update-status">Updates apply to installed builds only.</p>
+                  <div class="about-update-progress" id="about-update-progress" hidden>
+                    <div class="about-update-progress-track" aria-hidden="true">
+                      <div class="about-update-progress-fill" id="about-update-progress-fill"></div>
+                    </div>
+                    <span class="about-update-progress-label" id="about-update-progress-label">0%</span>
+                  </div>
                 </div>
               </div>
             </section>
@@ -1040,6 +1069,20 @@
             <button type="submit" class="btn primary" id="skill-form-save">Save skill</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <div class="update-overlay" id="update-overlay" hidden aria-live="polite" aria-busy="true">
+      <div class="update-overlay-card" role="dialog" aria-modal="true" aria-labelledby="update-overlay-title">
+        <div class="update-overlay-spinner" aria-hidden="true"></div>
+        <h2 class="update-overlay-title" id="update-overlay-title">Updating OpenPilot</h2>
+        <p class="update-overlay-message" id="update-overlay-message">Preparing update…</p>
+        <div class="update-overlay-progress" id="update-overlay-progress" hidden>
+          <div class="update-overlay-progress-track" aria-hidden="true">
+            <div class="update-overlay-progress-fill" id="update-overlay-progress-fill"></div>
+          </div>
+          <span class="update-overlay-percent" id="update-overlay-percent">0%</span>
+        </div>
       </div>
     </div>
 

@@ -75,7 +75,12 @@ const {
   getUserMemoryPath,
   getProjectMemoryPath,
 } = require("./memory");
-const { setupAutoUpdater, checkForUpdates } = require("./updater");
+const {
+  setupAutoUpdater,
+  checkForUpdates,
+  installUpdate,
+  getUpdateState,
+} = require("./updater");
 
 const APP_ICON_PNG = path.join(__dirname, "../../assets/icons", "icon.png");
 const APP_ICON_ICNS = path.join(__dirname, "../../assets/icons", "icon.icns");
@@ -190,6 +195,8 @@ app.whenReady().then(() => {
 
   ipcMain.handle("app:getVersion", () => app.getVersion());
   ipcMain.handle("app:checkForUpdates", async () => checkForUpdates());
+  ipcMain.handle("app:installUpdate", async () => installUpdate());
+  ipcMain.handle("app:getUpdateState", () => getUpdateState());
 
   onMcpStatus((status) => {
     for (const win of BrowserWindow.getAllWindows()) {

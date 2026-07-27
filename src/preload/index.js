@@ -10,6 +10,13 @@ contextBridge.exposeInMainWorld("onecode", {
   app: {
     getVersion: () => ipcRenderer.invoke("app:getVersion"),
     checkForUpdates: () => ipcRenderer.invoke("app:checkForUpdates"),
+    installUpdate: () => ipcRenderer.invoke("app:installUpdate"),
+    getUpdateState: () => ipcRenderer.invoke("app:getUpdateState"),
+    onUpdateEvent: (handler) => {
+      const listener = (_event, data) => handler(data);
+      ipcRenderer.on("app:update-event", listener);
+      return () => ipcRenderer.removeListener("app:update-event", listener);
+    },
   },
   models: {
     list: () => ipcRenderer.invoke("models:list"),

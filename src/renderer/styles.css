@@ -591,7 +591,8 @@ body.sidebar-resizing * {
 }
 
 .settings-btn,
-.new-chat-btn {
+.new-chat-btn,
+.update-available-btn {
   width: 100%;
   display: inline-flex;
   align-items: center;
@@ -616,15 +617,48 @@ body.sidebar-resizing * {
 }
 
 .settings-btn:hover,
-.new-chat-btn:hover {
+.new-chat-btn:hover,
+.update-available-btn:hover {
   background: #1f1f1f;
   border-color: transparent;
   color: var(--ink);
 }
 
 .settings-btn:active,
-.new-chat-btn:active {
+.new-chat-btn:active,
+.update-available-btn:active {
   transform: translateY(1px);
+}
+
+.update-available-btn {
+  position: relative;
+  color: #d8efe0;
+  background: rgba(52, 168, 110, 0.12);
+  border-color: rgba(52, 168, 110, 0.28);
+}
+
+.update-available-btn:hover {
+  background: rgba(52, 168, 110, 0.18);
+  border-color: rgba(52, 168, 110, 0.4);
+  color: #e9f7ef;
+}
+
+.update-available-btn[hidden] {
+  display: none !important;
+}
+
+.update-available-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.update-available-dot {
+  margin-left: auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3ecf8e;
+  box-shadow: 0 0 0 3px rgba(62, 207, 142, 0.18);
 }
 
 .chat-list {
@@ -5000,8 +5034,145 @@ body.sidebar-resizing * {
   gap: 0.65rem;
 }
 
+.about-update-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
 .about-update-actions .panel-hint {
   margin: 0;
+}
+
+.about-update-progress {
+  width: min(100%, 320px);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.about-update-progress[hidden] {
+  display: none !important;
+}
+
+.about-update-progress-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.about-update-progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2f9e6b, #4ade80);
+  transition: width 0.2s ease;
+}
+
+.about-update-progress-label {
+  min-width: 7.5rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.update-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(8, 8, 8, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.update-overlay[hidden] {
+  display: none !important;
+}
+
+.update-overlay-card {
+  width: min(100%, 360px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.6rem 1.4rem 1.35rem;
+  text-align: center;
+  background: linear-gradient(180deg, #1a1a1a 0%, #141414 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+.update-overlay-spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.12);
+  border-top-color: #4ade80;
+  animation: update-spin 0.8s linear infinite;
+}
+
+@keyframes update-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.update-overlay-title {
+  margin: 0.15rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.update-overlay-message {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.update-overlay-progress {
+  width: 100%;
+  margin-top: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.update-overlay-progress[hidden] {
+  display: none !important;
+}
+
+.update-overlay-progress-track {
+  flex: 1;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.update-overlay-progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2f9e6b, #4ade80);
+  transition: width 0.2s ease;
+}
+
+.update-overlay-percent {
+  min-width: 2.5rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-align: right;
+}
+
+body.update-in-progress {
+  overflow: hidden;
 }
 
 .usage-table-wrap {

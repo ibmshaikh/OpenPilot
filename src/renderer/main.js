@@ -109,6 +109,7 @@ import {
   refreshModels,
 } from "./settings.js";
 import { initOnboarding, startOnboarding } from "./onboarding.js";
+import { initUpdaterUi } from "./updater-ui.js";
 import {
   stopAgent,
   submitPrompt,
@@ -653,6 +654,7 @@ Promise.all([
   })
   .finally(() => {
     clearThreadLoadingState();
+    initUpdaterUi();
     initOnboarding();
     startOnboarding({
       onComplete: () => {
