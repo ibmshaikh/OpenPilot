@@ -33,6 +33,7 @@ import {
   settingsNavItems,
   usageRefreshBtn,
   usageResetBtn,
+  aboutCheckUpdateBtn,
   tinyfishForm,
   memoryForm,
   agentForm,
@@ -96,6 +97,7 @@ import {
   setSettingsSection,
   refreshUsagePanel,
   resetUsagePanel,
+  checkForAppUpdates,
   saveTinyFishSettings,
   showTinyFishFormError,
   saveMemorySettings,
@@ -404,6 +406,15 @@ if (usageResetBtn) {
     resetUsagePanel().catch((error) => {
       console.error(error);
       window.alert(error?.message || "Failed to reset usage.");
+    });
+  });
+}
+
+if (aboutCheckUpdateBtn) {
+  aboutCheckUpdateBtn.addEventListener("click", () => {
+    checkForAppUpdates().catch((error) => {
+      console.error(error);
+      window.alert(error?.message || "Failed to check for updates.");
     });
   });
 }

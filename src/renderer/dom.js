@@ -147,6 +147,9 @@ export const usageLifetimeFoot = document.getElementById("usage-lifetime-foot");
 export const usageLifetimeTable = document.getElementById("usage-lifetime-table");
 export const usageLifetimeEmpty = document.getElementById("usage-lifetime-empty");
 export const usageEstimateHint = document.getElementById("usage-estimate-hint");
+export const aboutVersionEl = document.getElementById("about-version");
+export const aboutCheckUpdateBtn = document.getElementById("about-check-update-btn");
+export const aboutUpdateStatusEl = document.getElementById("about-update-status");
 export const settingsNavItems = document.querySelectorAll(".settings-nav .nav-item");
 export const settingsPanels = document.querySelectorAll(".settings-panel[data-panel]");
 

@@ -61,6 +61,9 @@ import {
   usageLifetimeTable,
   usageLifetimeEmpty,
   usageEstimateHint,
+  aboutVersionEl,
+  aboutCheckUpdateBtn,
+  aboutUpdateStatusEl,
 } from "./dom.js";
 import { state, getSession, SELECTED_MODEL_KEY } from "./state.js";
 import { escapeHtml } from "./markdown.js";
@@ -140,7 +143,8 @@ export function setSettingsSection(section) {
     section === "memory" ||
     section === "agent" ||
     section === "skills" ||
-    section === "usage"
+    section === "usage" ||
+    section === "about"
   ) {
     state.activeSettingsSection = section;
   } else {
@@ -176,6 +180,10 @@ export function setSettingsSection(section) {
     });
   } else if (state.activeSettingsSection === "usage") {
     refreshUsagePanel().catch((error) => {
+      console.error(error);
+    });
+  } else if (state.activeSettingsSection === "about") {
+    refreshAboutPanel().catch((error) => {
       console.error(error);
     });
   }
@@ -300,6 +308,64 @@ export async function resetUsagePanel() {
   window.setTimeout(() => {
     settingsStatus.hidden = true;
   }, 2000);
+}
+
+export async function refreshAboutPanel() {
+  if (aboutVersionEl && window.onecode?.app?.getVersion) {
+    try {
+      aboutVersionEl.textContent = await window.onecode.app.getVersion();
+    } catch (error) {
+      aboutVersionEl.textContent = "—";
+      console.error(error);
+    }
+  }
+
+  if (aboutUpdateStatusEl && !aboutUpdateStatusEl.dataset.locked) {
+    aboutUpdateStatusEl.textContent = "Updates apply to installed builds only.";
+  }
+}
+
+export async function checkForAppUpdates() {
+  if (!window.onecode?.app?.checkForUpdates) {
+    throw new Error("Update checks are not available in this build.");
+  }
+
+  if (aboutCheckUpdateBtn) {
+    aboutCheckUpdateBtn.disabled = true;
+    aboutCheckUpdateBtn.textContent = "Checking…";
+  }
+  if (aboutUpdateStatusEl) {
+    aboutUpdateStatusEl.dataset.locked = "1";
+    aboutUpdateStatusEl.textContent = "Checking GitHub Releases…";
+  }
+
+  try {
+    const result = await window.onecode.app.checkForUpdates();
+    const message =
+      result?.message ||
+      (result?.status === "available"
+        ? `Update ${result.latestVersion} is available.`
+        : result?.status === "up-to-date"
+          ? `OpenPilot ${result.currentVersion || ""} is up to date.`
+          : "Update check finished.");
+
+    if (aboutUpdateStatusEl) {
+      aboutUpdateStatusEl.textContent = message;
+    }
+    if (settingsStatus) {
+      settingsStatus.hidden = false;
+      settingsStatus.textContent = message;
+      window.setTimeout(() => {
+        settingsStatus.hidden = true;
+      }, 2500);
+    }
+    return result;
+  } finally {
+    if (aboutCheckUpdateBtn) {
+      aboutCheckUpdateBtn.disabled = false;
+      aboutCheckUpdateBtn.textContent = "Check for updates";
+    }
+  }
 }
 
 export function clearTinyFishFormError() {

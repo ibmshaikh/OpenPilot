@@ -7,6 +7,10 @@ contextBridge.exposeInMainWorld("onecode", {
     chrome: process.versions.chrome,
     electron: process.versions.electron,
   },
+  app: {
+    getVersion: () => ipcRenderer.invoke("app:getVersion"),
+    checkForUpdates: () => ipcRenderer.invoke("app:checkForUpdates"),
+  },
   models: {
     list: () => ipcRenderer.invoke("models:list"),
     create: (payload) => ipcRenderer.invoke("models:create", payload),

@@ -4989,6 +4989,21 @@ body.sidebar-resizing * {
   color: var(--muted);
 }
 
+.about-version-row {
+  margin-top: 0.15rem;
+}
+
+.about-update-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.about-update-actions .panel-hint {
+  margin: 0;
+}
+
 .usage-table-wrap {
   overflow-x: auto;
   border: 1px solid rgba(255, 255, 255, 0.07);

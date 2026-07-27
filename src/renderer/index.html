@@ -617,6 +617,14 @@
               </svg>
               <span>MCP</span>
             </button>
+            <button class="nav-item" type="button" data-section="about">
+              <svg class="nav-item-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="8.25" stroke="currentColor" stroke-width="1.7" />
+                <path d="M12 10.5v5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                <circle cx="12" cy="7.75" r="0.9" fill="currentColor" />
+              </svg>
+              <span>About</span>
+            </button>
           </nav>
 
           <div class="modal-body">
@@ -877,6 +885,39 @@
                 </summary>
                 <pre class="mcp-logs-body" id="mcp-logs-body">No MCP logs yet.</pre>
               </details>
+            </section>
+
+            <section class="settings-panel" id="panel-about" data-panel="about" hidden>
+              <div class="panel-heading">
+                <div>
+                  <h3 class="panel-title">About</h3>
+                  <p class="panel-desc">App version and updates from GitHub Releases.</p>
+                </div>
+              </div>
+
+              <div class="usage-block">
+                <div class="usage-block-header">
+                  <h4 class="usage-block-title">Version</h4>
+                  <p class="usage-block-desc">Currently running OpenPilot build.</p>
+                </div>
+                <div class="skills-path-row about-version-row">
+                  <div class="skills-path-meta">
+                    <span class="label">Installed version</span>
+                    <code id="about-version" class="skills-config-path">—</code>
+                  </div>
+                </div>
+              </div>
+
+              <div class="usage-block">
+                <div class="usage-block-header">
+                  <h4 class="usage-block-title">Updates</h4>
+                  <p class="usage-block-desc">Check GitHub Releases for a newer build.</p>
+                </div>
+                <div class="about-update-actions">
+                  <button type="button" class="btn primary" id="about-check-update-btn">Check for updates</button>
+                  <p class="panel-hint" id="about-update-status">Updates apply to installed builds only.</p>
+                </div>
+              </div>
             </section>
           </div>
         </div>

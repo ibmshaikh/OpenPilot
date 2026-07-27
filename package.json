@@ -6,6 +6,10 @@
   "main": "src/main/index.js",
   "author": "OpenPilot",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ibmshaikh/OpenPilot.git"
+  },
   "scripts": {
     "start": "env -u ELECTRON_RUN_AS_NODE electron .",
     "postinstall": "node scripts/fix-langgraph-sdk-pnpm.js && electron-rebuild -f -w better-sqlite3",
@@ -15,7 +19,10 @@
     "dist": "npm run fix:deps && electron-builder --mac --win",
     "dist:mac": "npm run fix:deps && electron-builder --mac",
     "dist:win": "npm run fix:deps && electron-builder --win",
-    "dist:all": "npm run fix:deps && electron-builder --mac --win"
+    "dist:all": "npm run fix:deps && electron-builder --mac --win",
+    "release": "npm run fix:deps && electron-builder --mac --win --publish always",
+    "release:mac": "npm run fix:deps && electron-builder --mac --publish always",
+    "release:win": "npm run fix:deps && electron-builder --win --publish always"
   },
   "dependencies": {
     "@langchain/core": "^1.2.3",
@@ -31,6 +38,7 @@
     "better-sqlite3": "^12.11.1",
     "deepagents": "^1.11.1",
     "dompurify": "^3.4.12",
+    "electron-updater": "^6.8.9",
     "highlight.js": "^11.11.1",
     "langchain": "^1.5.3",
     "langsmith": "^0.8.3",
@@ -51,11 +59,20 @@
     "directories": {
       "output": "dist"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "ibmshaikh",
+        "repo": "OpenPilot",
+        "releaseType": "release"
+      }
+    ],
     "files": [
       "**/*",
       "!dist/**",
       "!graphify-out/**",
       "!.cursor/**",
+      "!.github/**",
       "!.git/**",
       "!**/*.map",
       "!_orphan_*",
@@ -71,11 +88,17 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["arm64", "x64"]
+          "arch": [
+            "arm64",
+            "x64"
+          ]
         },
         {
           "target": "zip",
-          "arch": ["arm64", "x64"]
+          "arch": [
+            "arm64",
+            "x64"
+          ]
         }
       ],
       "identity": null
@@ -88,11 +111,15 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     },
