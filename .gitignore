@@ -10,6 +10,7 @@ dist/
 # OS / editor
 .DS_Store
 Thumbs.db
+.cursor/
 
 # Env / secrets
 .env
