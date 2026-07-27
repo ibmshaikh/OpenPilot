@@ -22,7 +22,8 @@
     "dist:all": "npm run fix:deps && electron-builder --mac --win",
     "release": "npm run fix:deps && electron-builder --mac --win --publish always",
     "release:mac": "npm run fix:deps && electron-builder --mac --publish always",
-    "release:win": "npm run fix:deps && electron-builder --win --publish always"
+    "release:win": "npm run fix:deps && electron-builder --win --publish always",
+    "release:meta": "node scripts/generate-update-metadata.js"
   },
   "dependencies": {
     "@langchain/core": "^1.2.3",

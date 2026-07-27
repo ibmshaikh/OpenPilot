@@ -9,10 +9,8 @@ on:
 permissions:
   contents: write
 
-# Publish mac then Windows sequentially so electron-builder does not race
-# creating the same GitHub Release (422 already_exists).
 jobs:
-  release-mac:
+  build-mac:
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -27,14 +25,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build and publish macOS
+      - name: Build macOS
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
-        run: npm run release:mac
+        run: npm run dist:mac
 
-  release-win:
-    needs: release-mac
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-artifacts
+          path: |
+            dist/*.dmg
+            dist/*.zip
+            dist/*.blockmap
+          if-no-files-found: error
+
+  build-win:
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -49,7 +55,72 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build and publish Windows
+      - name: Build Windows
+        run: npm run dist:win
+
+      - name: Normalize Windows artifact names
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          for f in *.exe *.blockmap; do
+            [ -e "$f" ] || continue
+            normalized="${f// /-}"
+            if [ "$f" != "$normalized" ]; then
+              mv "$f" "$normalized"
+            fi
+          done
+          ls -lah
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: win-artifacts
+          path: |
+            dist/*.exe
+            dist/*.blockmap
+          if-no-files-found: error
+
+  publish:
+    needs: [build-mac, build-win]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: mac-artifacts
+          path: dist
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: win-artifacts
+          path: dist
+
+      - name: Generate update metadata and publish
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run release:win
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="$(node -p "require('./package.json').version")"
+            TAG="v${VERSION}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+            VERSION="${TAG#v}"
+          fi
+
+          node scripts/generate-update-metadata.js "$VERSION" dist
+          ls -lah dist
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* \
+              --title "$VERSION" \
+              --notes "OpenPilot $VERSION" \
+              --verify-tag
+          fi
