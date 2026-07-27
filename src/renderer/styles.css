@@ -5709,11 +5709,13 @@ body.onboarding-open {
   backdrop-filter: blur(14px);
 }
 
-.onboarding[hidden] {
+.onboarding[hidden],
+.onboarding[inert] {
   display: none !important;
   pointer-events: none !important;
-  visibility: hidden;
-  backdrop-filter: none;
+  visibility: hidden !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 .onboarding-card {

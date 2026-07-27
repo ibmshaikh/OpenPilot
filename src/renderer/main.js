@@ -49,6 +49,7 @@ import {
   modelFormCancel,
   modelFormModal,
   settingsModal,
+  shell,
 } from "./dom.js";
 
 const platform = window.onecode?.platform || "darwin";
@@ -656,12 +657,18 @@ Promise.all([
     startOnboarding({
       onComplete: () => {
         clearThreadLoadingState();
+        shell?.classList.remove("is-loading");
+        form?.classList.remove("is-loading");
+        form?.removeAttribute("aria-busy");
+        syncComposerModelLabel();
         syncComposerSetupBanner();
-        requestAnimationFrame(() => input.focus());
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => input?.focus({ preventScroll: true }));
+        });
       },
     }).catch((error) => {
       console.error(error);
       clearThreadLoadingState();
-      input.focus();
+      input?.focus({ preventScroll: true });
     });
   });

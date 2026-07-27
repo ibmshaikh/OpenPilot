@@ -35,6 +35,7 @@ const STEPS = ["welcome", "model", "workspace", "tinyfish"];
 
 let stepIndex = 0;
 let onCompleteCb = null;
+let advancing = false;
 
 export async function isOnboardingComplete() {
   try {
@@ -132,31 +133,51 @@ async function refreshModelsLocal() {
     localStorage.removeItem(SELECTED_MODEL_KEY);
   }
   renderModelList();
+  renderModelMenu();
+  syncComposerModelLabel();
   syncComposerSetupBanner();
 }
 
-async function saveOnboardingModel(event) {
-  event.preventDefault();
-  if (!onboardingModelForm) return;
-
-  clearModelError();
-  if (onboardingModelStatus) onboardingModelStatus.hidden = true;
-
+function getOnboardingModelPayload() {
+  if (!onboardingModelForm) return null;
   const formData = new FormData(onboardingModelForm);
-  const payload = {
+  return {
     modelName: String(formData.get("modelName") || "").trim(),
     baseUrl: String(formData.get("baseUrl") || "").trim(),
     apiKey: String(formData.get("apiKey") || "").trim(),
     displayName: String(formData.get("displayName") || "").trim(),
   };
+}
 
-  if (!payload.modelName || !payload.baseUrl || !payload.apiKey || !payload.displayName) {
-    showModelError("Fill in all model fields, or tap Next to continue without one.");
-    return;
+function isModelPayloadEmpty(payload) {
+  return !payload?.modelName && !payload?.baseUrl && !payload?.apiKey && !payload?.displayName;
+}
+
+function isModelPayloadComplete(payload) {
+  return Boolean(
+    payload?.modelName && payload?.baseUrl && payload?.apiKey && payload?.displayName
+  );
+}
+
+/**
+ * Persist model fields when leaving the model step or finishing onboarding.
+ * @param {{ strict?: boolean }} opts - when strict, partial fills block navigation
+ * @returns {Promise<boolean>} false when navigation should stop
+ */
+async function persistModelStep({ strict = false } = {}) {
+  const payload = getOnboardingModelPayload();
+  if (!payload || isModelPayloadEmpty(payload)) return true;
+
+  clearModelError();
+  if (onboardingModelStatus) onboardingModelStatus.hidden = true;
+
+  if (!isModelPayloadComplete(payload)) {
+    if (strict) {
+      showModelError("Fill in all model fields, or clear them to continue without one.");
+      return false;
+    }
+    return true;
   }
-
-  const submitBtn = onboardingModelForm.querySelector('button[type="submit"]');
-  if (submitBtn) submitBtn.disabled = true;
 
   try {
     const created = await window.onecode.models.create(payload);
@@ -165,15 +186,23 @@ async function saveOnboardingModel(event) {
       localStorage.setItem(SELECTED_MODEL_KEY, String(created.id));
     }
     await refreshModelsLocal();
-    onboardingModelForm.reset();
+    onboardingModelForm?.reset();
     if (onboardingModelStatus) {
       onboardingModelStatus.hidden = false;
-      onboardingModelStatus.textContent = "Model saved. You can add more later in Settings.";
+      onboardingModelStatus.textContent = "Model saved.";
     }
+    return true;
   } catch (error) {
     showModelError(error?.message || "Failed to save model.");
-  } finally {
-    if (submitBtn) submitBtn.disabled = false;
+    return false;
+  }
+}
+
+async function saveOnboardingModel(event) {
+  event.preventDefault();
+  const ok = await persistModelStep({ strict: true });
+  if (ok && onboardingModelStatus) {
+    onboardingModelStatus.textContent = "Model saved. You can add more later in Settings.";
   }
 }
 
@@ -189,29 +218,48 @@ function clearModelError() {
   onboardingModelError.textContent = "";
 }
 
-async function saveOnboardingTinyFish(event) {
-  event.preventDefault();
-  if (!onboardingTinyfishForm) return;
+function getOnboardingTinyFishPayload() {
+  return {
+    enabled: Boolean(onboardingTinyfishEnabled?.checked),
+    apiKey: String(onboardingTinyfishApiKey?.value || "").trim(),
+  };
+}
+
+/**
+ * Persist TinyFish when finishing onboarding or submitting the form.
+ * @param {{ strict?: boolean }} opts - when strict, validation errors block finish
+ * @returns {Promise<boolean>}
+ */
+async function persistTinyFishStep({ strict = false } = {}) {
+  const payload = getOnboardingTinyFishPayload();
+  if (!payload.enabled && !payload.apiKey) return true;
 
   clearTinyFishError();
   if (onboardingTinyfishStatus) onboardingTinyfishStatus.hidden = true;
 
-  const submitBtn = onboardingTinyfishForm.querySelector('button[type="submit"]');
-  if (submitBtn) submitBtn.disabled = true;
-
   try {
-    await window.onecode.settings.saveTinyFish({
-      enabled: Boolean(onboardingTinyfishEnabled?.checked),
-      apiKey: String(onboardingTinyfishApiKey?.value || "").trim(),
-    });
+    await window.onecode.settings.saveTinyFish(payload);
     if (onboardingTinyfishStatus) {
       onboardingTinyfishStatus.hidden = false;
-      onboardingTinyfishStatus.textContent = "TinyFish saved. You can change this anytime in Settings.";
+      onboardingTinyfishStatus.textContent = "TinyFish saved.";
     }
+    return true;
   } catch (error) {
-    showTinyFishError(error?.message || "Failed to save TinyFish settings.");
-  } finally {
-    if (submitBtn) submitBtn.disabled = false;
+    if (strict) {
+      showTinyFishError(error?.message || "Failed to save TinyFish settings.");
+      return false;
+    }
+    console.error(error);
+    return true;
+  }
+}
+
+async function saveOnboardingTinyFish(event) {
+  event.preventDefault();
+  const ok = await persistTinyFishStep({ strict: true });
+  if (ok && onboardingTinyfishStatus) {
+    onboardingTinyfishStatus.textContent =
+      "TinyFish saved. You can change this anytime in Settings.";
   }
 }
 
@@ -231,17 +279,25 @@ function hideOnboardingOverlay() {
   if (!onboardingEl) return;
   onboardingEl.hidden = true;
   onboardingEl.setAttribute("aria-hidden", "true");
+  onboardingEl.setAttribute("inert", "");
   // Electron/Chromium can leave a backdrop-filter layer intercepting hits
-  // after display:none — force the overlay out of hit-testing.
+  // after display:none — force the overlay out of hit-testing entirely.
   onboardingEl.style.pointerEvents = "none";
   onboardingEl.style.visibility = "hidden";
+  onboardingEl.style.display = "none";
+  onboardingEl.style.backdropFilter = "none";
+  onboardingEl.style.webkitBackdropFilter = "none";
 }
 
 function showOnboardingOverlay() {
   if (!onboardingEl) return;
   onboardingEl.style.pointerEvents = "";
   onboardingEl.style.visibility = "";
+  onboardingEl.style.display = "";
+  onboardingEl.style.backdropFilter = "";
+  onboardingEl.style.webkitBackdropFilter = "";
   onboardingEl.removeAttribute("aria-hidden");
+  onboardingEl.removeAttribute("inert");
   onboardingEl.hidden = false;
 }
 
@@ -251,6 +307,7 @@ async function unlockChatAfterOnboarding() {
   shell?.classList.remove("is-loading");
   form?.classList.remove("is-loading");
   form?.removeAttribute("aria-busy");
+  form?.classList.remove("sending");
 
   try {
     state.customModels = await window.onecode.models.list();
@@ -274,18 +331,53 @@ async function unlockChatAfterOnboarding() {
   syncComposerModelLabel();
   syncComposerSetupBanner();
 
-  // Focus after the overlay is fully removed from the compositor.
+  // Two frames: let the overlay leave the compositor before focusing.
   requestAnimationFrame(() => {
-    input?.focus({ preventScroll: true });
+    requestAnimationFrame(() => {
+      input?.focus({ preventScroll: true });
+    });
   });
 }
 
-async function finishOnboarding() {
+async function finishOnboarding({ persistFilled = true, strictPersist = false } = {}) {
+  if (persistFilled) {
+    const modelOk = await persistModelStep({ strict: strictPersist });
+    if (!modelOk) return false;
+    const tinyOk = await persistTinyFishStep({ strict: strictPersist });
+    if (!tinyOk) return false;
+  }
+
   await markOnboardingComplete();
   hideOnboardingOverlay();
   document.body.classList.remove("onboarding-open");
   await unlockChatAfterOnboarding();
   if (typeof onCompleteCb === "function") onCompleteCb();
+  return true;
+}
+
+async function advanceOnboarding() {
+  if (advancing) return;
+  advancing = true;
+  if (onboardingNextBtn) onboardingNextBtn.disabled = true;
+
+  try {
+    const step = STEPS[stepIndex];
+
+    if (step === "model") {
+      const ok = await persistModelStep({ strict: true });
+      if (!ok) return;
+    }
+
+    if (stepIndex >= STEPS.length - 1) {
+      await finishOnboarding({ persistFilled: true, strictPersist: true });
+      return;
+    }
+
+    setStep(stepIndex + 1);
+  } finally {
+    advancing = false;
+    if (onboardingNextBtn) onboardingNextBtn.disabled = false;
+  }
 }
 
 export async function startOnboarding({ onComplete } = {}) {
@@ -303,7 +395,10 @@ export async function startOnboarding({ onComplete } = {}) {
 export function initOnboarding() {
   if (onboardingSkipBtn) {
     onboardingSkipBtn.addEventListener("click", () => {
-      finishOnboarding().catch((error) => console.error(error));
+      // Skip remaining steps, but still persist any complete values already entered.
+      finishOnboarding({ persistFilled: true, strictPersist: false }).catch((error) =>
+        console.error(error)
+      );
     });
   }
 
@@ -315,11 +410,7 @@ export function initOnboarding() {
 
   if (onboardingNextBtn) {
     onboardingNextBtn.addEventListener("click", () => {
-      if (stepIndex >= STEPS.length - 1) {
-        finishOnboarding().catch((error) => console.error(error));
-        return;
-      }
-      setStep(stepIndex + 1);
+      advanceOnboarding().catch((error) => console.error(error));
     });
   }
 
