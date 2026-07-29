@@ -51,7 +51,8 @@
   "devDependencies": {
     "@electron/rebuild": "^4.0.1",
     "electron": "^37.2.0",
-    "electron-builder": "^26.0.12"
+    "electron-builder": "^26.0.12",
+    "firebase-tools": "^15.24.0"
   },
   "build": {
     "appId": "com.ibmshaikh.onecode",

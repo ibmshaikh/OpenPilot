@@ -1,0 +1,1014 @@
+- table [ref=f2e3]:
+  - rowgroup [ref=f2e4]:
+    - row [ref=f2e5]:
+      - cell [ref=f2e6]:
+        - table [ref=f2e7]:
+          - rowgroup [ref=f2e8]:
+            - row [ref=f2e9]:
+              - cell [ref=f2e10]:
+                - link [ref=f2e11] [cursor=pointer]:
+                  - /url: https://news.ycombinator.com
+              - cell [ref=f2e13]:
+                - generic [ref=f2e14]:
+                  - link "Hacker News" [ref=f2e16] [cursor=pointer]:
+                    - /url: news
+                  - link "new" [ref=f2e17] [cursor=pointer]:
+                    - /url: newest
+                  - text: "|"
+                  - link "past" [ref=f2e18] [cursor=pointer]:
+                    - /url: front
+                  - text: "|"
+                  - link "comments" [ref=f2e19] [cursor=pointer]:
+                    - /url: newcomments
+                  - text: "|"
+                  - link "ask" [ref=f2e20] [cursor=pointer]:
+                    - /url: ask
+                  - text: "|"
+                  - link "show" [ref=f2e21] [cursor=pointer]:
+                    - /url: show
+                  - text: "|"
+                  - link "jobs" [ref=f2e22] [cursor=pointer]:
+                    - /url: jobs
+                  - text: "|"
+                  - link "submit" [ref=f2e23] [cursor=pointer]:
+                    - /url: submit
+              - cell [ref=f2e24]:
+                - link "login" [ref=f2e26] [cursor=pointer]:
+                  - /url: login?goto=news
+    - row [ref=f2e27]
+    - row [ref=f2e28]:
+      - cell [ref=f2e29]:
+        - table [ref=f2e30]:
+          - rowgroup [ref=f2e31]:
+            - row [ref=f2e32]:
+              - cell "1." [ref=f2e33]
+              - cell [ref=f2e34]:
+                - link "upvote" [ref=f2e36] [cursor=pointer]:
+                  - /url: vote?id=49076057&how=up&goto=news
+              - cell [ref=f2e38]:
+                - generic [ref=f2e39]:
+                  - link "Our position on open-weights models" [ref=f2e40] [cursor=pointer]:
+                    - /url: https://www.anthropic.com/news/position-open-weights-models
+                  - generic [ref=f2e41]:
+                    - text: (
+                    - link "anthropic.com" [ref=f2e42] [cursor=pointer]:
+                      - /url: from?site=anthropic.com
+                    - text: )
+            - row [ref=f2e43]:
+              - cell [ref=f2e44]
+              - cell [ref=f2e45]:
+                - generic [ref=f2e46]:
+                  - text: 797 points by
+                  - link "surprisetalk" [ref=f2e47] [cursor=pointer]:
+                    - /url: user?id=surprisetalk
+                  - generic "2026-07-27T22:03:49 1785189829" [ref=f2e48]:
+                    - link "9 hours ago" [ref=f2e49] [cursor=pointer]:
+                      - /url: item?id=49076057
+                  - text: "|"
+                  - link "hide" [ref=f2e50] [cursor=pointer]:
+                    - /url: hide?id=49076057&goto=news
+                  - text: "|"
+                  - link "1124 comments" [ref=f2e51] [cursor=pointer]:
+                    - /url: item?id=49076057
+            - row [ref=f2e52]
+            - row [ref=f2e53]:
+              - cell "2." [ref=f2e54]
+              - cell [ref=f2e55]:
+                - link "upvote" [ref=f2e57] [cursor=pointer]:
+                  - /url: vote?id=49079727&how=up&goto=news
+              - cell [ref=f2e59]:
+                - generic [ref=f2e60]:
+                  - link "Ars Astronomica – English translations of rare Hebrew and Latin astronomy texts" [ref=f2e61] [cursor=pointer]:
+                    - /url: https://arsastronomica.com/
+                  - generic [ref=f2e62]:
+                    - text: (
+                    - link "arsastronomica.com" [ref=f2e63] [cursor=pointer]:
+                      - /url: from?site=arsastronomica.com
+                    - text: )
+            - row [ref=f2e64]:
+              - cell [ref=f2e65]
+              - cell [ref=f2e66]:
+                - generic [ref=f2e67]:
+                  - text: 36 points by
+                  - link "sweisman" [ref=f2e68] [cursor=pointer]:
+                    - /url: user?id=sweisman
+                  - generic "2026-07-28T05:25:34 1785216334" [ref=f2e69]:
+                    - link "2 hours ago" [ref=f2e70] [cursor=pointer]:
+                      - /url: item?id=49079727
+                  - text: "|"
+                  - link "hide" [ref=f2e71] [cursor=pointer]:
+                    - /url: hide?id=49079727&goto=news
+                  - text: "|"
+                  - link "5 comments" [ref=f2e72] [cursor=pointer]:
+                    - /url: item?id=49079727
+            - row [ref=f2e73]
+            - row [ref=f2e74]:
+              - cell "3." [ref=f2e75]
+              - cell [ref=f2e76]:
+                - link "upvote" [ref=f2e78] [cursor=pointer]:
+                  - /url: vote?id=49079490&how=up&goto=news
+              - cell [ref=f2e80]:
+                - generic [ref=f2e81]:
+                  - link "Neutrino-1 8B" [ref=f2e82] [cursor=pointer]:
+                    - /url: https://www.fermionresearch.com/models/neutrino-8b/
+                  - generic [ref=f2e83]:
+                    - text: (
+                    - link "fermionresearch.com" [ref=f2e84] [cursor=pointer]:
+                      - /url: from?site=fermionresearch.com
+                    - text: )
+            - row [ref=f2e85]:
+              - cell [ref=f2e86]
+              - cell [ref=f2e87]:
+                - generic [ref=f2e88]:
+                  - text: 51 points by
+                  - link "handfuloflight" [ref=f2e89] [cursor=pointer]:
+                    - /url: user?id=handfuloflight
+                  - generic "2026-07-28T04:49:54 1785214194" [ref=f2e90]:
+                    - link "2 hours ago" [ref=f2e91] [cursor=pointer]:
+                      - /url: item?id=49079490
+                  - text: "|"
+                  - link "hide" [ref=f2e92] [cursor=pointer]:
+                    - /url: hide?id=49079490&goto=news
+                  - text: "|"
+                  - link "8 comments" [ref=f2e93] [cursor=pointer]:
+                    - /url: item?id=49079490
+            - row [ref=f2e94]
+            - row [ref=f2e95]:
+              - cell "4." [ref=f2e96]
+              - cell [ref=f2e97]:
+                - link "upvote" [ref=f2e99] [cursor=pointer]:
+                  - /url: vote?id=49078454&how=up&goto=news
+              - cell [ref=f2e101]:
+                - generic [ref=f2e102]:
+                  - link "A $500 RL fine-tune of a 9B open model beat frontier models on catalog review" [ref=f2e103] [cursor=pointer]:
+                    - /url: https://fermisense.com/when-machines-take-the-wheel/
+                  - generic [ref=f2e104]:
+                    - text: (
+                    - link "fermisense.com" [ref=f2e105] [cursor=pointer]:
+                      - /url: from?site=fermisense.com
+                    - text: )
+            - row [ref=f2e106]:
+              - cell [ref=f2e107]
+              - cell [ref=f2e108]:
+                - generic [ref=f2e109]:
+                  - text: 140 points by
+                  - link "ilreb" [ref=f2e110] [cursor=pointer]:
+                    - /url: user?id=ilreb
+                  - generic "2026-07-28T02:18:53 1785205133" [ref=f2e111]:
+                    - link "5 hours ago" [ref=f2e112] [cursor=pointer]:
+                      - /url: item?id=49078454
+                  - text: "|"
+                  - link "hide" [ref=f2e113] [cursor=pointer]:
+                    - /url: hide?id=49078454&goto=news
+                  - text: "|"
+                  - link "38 comments" [ref=f2e114] [cursor=pointer]:
+                    - /url: item?id=49078454
+            - row [ref=f2e115]
+            - row [ref=f2e116]:
+              - cell "5." [ref=f2e117]
+              - cell [ref=f2e118]:
+                - link "upvote" [ref=f2e120] [cursor=pointer]:
+                  - /url: vote?id=49078583&how=up&goto=news
+              - cell [ref=f2e122]:
+                - generic [ref=f2e123]:
+                  - link "Using an open model feels surprisingly good" [ref=f2e124] [cursor=pointer]:
+                    - /url: https://matthewsaltz.com/blog/using-an-open-model-feels-surprisingly-good/
+                  - generic [ref=f2e125]:
+                    - text: (
+                    - link "matthewsaltz.com" [ref=f2e126] [cursor=pointer]:
+                      - /url: from?site=matthewsaltz.com
+                    - text: )
+            - row [ref=f2e127]:
+              - cell [ref=f2e128]
+              - cell [ref=f2e129]:
+                - generic [ref=f2e130]:
+                  - text: 242 points by
+                  - link "msaltz" [ref=f2e131] [cursor=pointer]:
+                    - /url: user?id=msaltz
+                  - generic "2026-07-28T02:37:14 1785206234" [ref=f2e132]:
+                    - link "4 hours ago" [ref=f2e133] [cursor=pointer]:
+                      - /url: item?id=49078583
+                  - text: "|"
+                  - link "hide" [ref=f2e134] [cursor=pointer]:
+                    - /url: hide?id=49078583&goto=news
+                  - text: "|"
+                  - link "72 comments" [ref=f2e135] [cursor=pointer]:
+                    - /url: item?id=49078583
+            - row [ref=f2e136]
+            - row [ref=f2e137]:
+              - cell "6." [ref=f2e138]
+              - cell [ref=f2e139]:
+                - link "upvote" [ref=f2e141] [cursor=pointer]:
+                  - /url: vote?id=49079175&how=up&goto=news
+              - cell [ref=f2e143]:
+                - generic [ref=f2e144]:
+                  - link "Why do we think we understand the world more than we actually do?" [ref=f2e145] [cursor=pointer]:
+                    - /url: https://thedecisionlab.com/biases/the-illusion-of-explanatory-depth
+                  - generic [ref=f2e146]:
+                    - text: (
+                    - link "thedecisionlab.com" [ref=f2e147] [cursor=pointer]:
+                      - /url: from?site=thedecisionlab.com
+                    - text: )
+            - row [ref=f2e148]:
+              - cell [ref=f2e149]
+              - cell [ref=f2e150]:
+                - generic [ref=f2e151]:
+                  - text: 47 points by
+                  - link "rramadass" [ref=f2e152] [cursor=pointer]:
+                    - /url: user?id=rramadass
+                  - generic "2026-07-28T04:00:41 1785211241" [ref=f2e153]:
+                    - link "3 hours ago" [ref=f2e154] [cursor=pointer]:
+                      - /url: item?id=49079175
+                  - text: "|"
+                  - link "hide" [ref=f2e155] [cursor=pointer]:
+                    - /url: hide?id=49079175&goto=news
+                  - text: "|"
+                  - link "36 comments" [ref=f2e156] [cursor=pointer]:
+                    - /url: item?id=49079175
+            - row [ref=f2e157]
+            - row [ref=f2e158]:
+              - cell "7." [ref=f2e159]
+              - cell [ref=f2e160]:
+                - link "upvote" [ref=f2e162] [cursor=pointer]:
+                  - /url: vote?id=49076391&how=up&goto=news
+              - cell [ref=f2e164]:
+                - generic [ref=f2e165]:
+                  - link "Benchmarking Opus 5 on SlopCodeBench" [ref=f2e166] [cursor=pointer]:
+                    - /url: https://github.com/humanlayer/advanced-context-engineering-for-coding-agents/blob/main/benchmarking-opus-5-on-slop-code-bench.md
+                  - generic [ref=f2e167]:
+                    - text: (
+                    - link "github.com/humanlayer" [ref=f2e168] [cursor=pointer]:
+                      - /url: from?site=github.com/humanlayer
+                    - text: )
+            - row [ref=f2e169]:
+              - cell [ref=f2e170]
+              - cell [ref=f2e171]:
+                - generic [ref=f2e172]:
+                  - text: 245 points by
+                  - link "dhorthy" [ref=f2e173] [cursor=pointer]:
+                    - /url: user?id=dhorthy
+                  - generic "2026-07-27T22:37:52 1785191872" [ref=f2e174]:
+                    - link "8 hours ago" [ref=f2e175] [cursor=pointer]:
+                      - /url: item?id=49076391
+                  - text: "|"
+                  - link "hide" [ref=f2e176] [cursor=pointer]:
+                    - /url: hide?id=49076391&goto=news
+                  - text: "|"
+                  - link "56 comments" [ref=f2e177] [cursor=pointer]:
+                    - /url: item?id=49076391
+            - row [ref=f2e178]
+            - row [ref=f2e179]:
+              - cell "8." [ref=f2e180]
+              - cell [ref=f2e181]:
+                - link "upvote" [ref=f2e183] [cursor=pointer]:
+                  - /url: vote?id=49078575&how=up&goto=news
+              - cell [ref=f2e185]:
+                - generic [ref=f2e186]:
+                  - link "An Uncomplicated Man – A review of The Odyssey, directed by Christopher Nolan" [ref=f2e187] [cursor=pointer]:
+                    - /url: https://www.lrb.co.uk/the-paper/v48/n14/emily-wilson/an-uncomplicated-man
+                  - generic [ref=f2e188]:
+                    - text: (
+                    - link "lrb.co.uk" [ref=f2e189] [cursor=pointer]:
+                      - /url: from?site=lrb.co.uk
+                    - text: )
+            - row [ref=f2e190]:
+              - cell [ref=f2e191]
+              - cell [ref=f2e192]:
+                - generic [ref=f2e193]:
+                  - text: 67 points by
+                  - link "andsoitis" [ref=f2e194] [cursor=pointer]:
+                    - /url: user?id=andsoitis
+                  - generic "2026-07-28T02:35:28 1785206128" [ref=f2e195]:
+                    - link "4 hours ago" [ref=f2e196] [cursor=pointer]:
+                      - /url: item?id=49078575
+                  - text: "|"
+                  - link "hide" [ref=f2e197] [cursor=pointer]:
+                    - /url: hide?id=49078575&goto=news
+                  - text: "|"
+                  - link "36 comments" [ref=f2e198] [cursor=pointer]:
+                    - /url: item?id=49078575
+            - row [ref=f2e199]
+            - row [ref=f2e200]:
+              - cell "9." [ref=f2e201]
+              - cell [ref=f2e202]:
+                - link "upvote" [ref=f2e204] [cursor=pointer]:
+                  - /url: vote?id=49079454&how=up&goto=news
+              - cell [ref=f2e206]:
+                - generic [ref=f2e207]:
+                  - 'link "PyTorch: A Reference Language" [ref=f2e208] [cursor=pointer]':
+                    - /url: https://docs.pytorch.org/devlogs/compiler/2026-07-25-pytorch-a-reference-language/
+                  - generic [ref=f2e209]:
+                    - text: (
+                    - link "pytorch.org" [ref=f2e210] [cursor=pointer]:
+                      - /url: from?site=pytorch.org
+                    - text: )
+            - row [ref=f2e211]:
+              - cell [ref=f2e212]
+              - cell [ref=f2e213]:
+                - generic [ref=f2e214]:
+                  - text: 22 points by
+                  - link "matt_d" [ref=f2e215] [cursor=pointer]:
+                    - /url: user?id=matt_d
+                  - generic "2026-07-28T04:46:00 1785213960" [ref=f2e216]:
+                    - link "2 hours ago" [ref=f2e217] [cursor=pointer]:
+                      - /url: item?id=49079454
+                  - text: "|"
+                  - link "hide" [ref=f2e218] [cursor=pointer]:
+                    - /url: hide?id=49079454&goto=news
+                  - text: "|"
+                  - link "2 comments" [ref=f2e219] [cursor=pointer]:
+                    - /url: item?id=49079454
+            - row [ref=f2e220]
+            - row [ref=f2e221]:
+              - cell "10." [ref=f2e222]
+              - cell [ref=f2e223]:
+                - link "upvote" [ref=f2e225] [cursor=pointer]:
+                  - /url: vote?id=49041256&how=up&goto=news
+              - cell [ref=f2e227]:
+                - generic [ref=f2e228]:
+                  - link "RTX 2080 Ti Memory Upgrade to 22 GB" [ref=f2e229] [cursor=pointer]:
+                    - /url: https://gpusolutions.net/rbservices/graphics-card-upgrade/
+                  - generic [ref=f2e230]:
+                    - text: (
+                    - link "gpusolutions.net" [ref=f2e231] [cursor=pointer]:
+                      - /url: from?site=gpusolutions.net
+                    - text: )
+            - row [ref=f2e232]:
+              - cell [ref=f2e233]
+              - cell [ref=f2e234]:
+                - generic [ref=f2e235]:
+                  - text: 86 points by
+                  - link "wslh" [ref=f2e236] [cursor=pointer]:
+                    - /url: user?id=wslh
+                  - generic "2026-07-24T20:35:21 1784925321" [ref=f2e237]:
+                    - link "7 hours ago" [ref=f2e238] [cursor=pointer]:
+                      - /url: item?id=49041256
+                  - text: "|"
+                  - link "hide" [ref=f2e239] [cursor=pointer]:
+                    - /url: hide?id=49041256&goto=news
+                  - text: "|"
+                  - link "51 comments" [ref=f2e240] [cursor=pointer]:
+                    - /url: item?id=49041256
+            - row [ref=f2e241]
+            - row [ref=f2e242]:
+              - cell "11." [ref=f2e243]
+              - cell [ref=f2e244]:
+                - link "upvote" [ref=f2e246] [cursor=pointer]:
+                  - /url: vote?id=49077999&how=up&goto=news
+              - cell [ref=f2e248]:
+                - generic [ref=f2e249]:
+                  - link "Vehicle Motion Cues" [ref=f2e250] [cursor=pointer]:
+                    - /url: https://support.apple.com/guide/iphone/iphone-comfortably-riding-a-vehicle-iph55564cb22/ios
+                  - generic [ref=f2e251]:
+                    - text: (
+                    - link "support.apple.com" [ref=f2e252] [cursor=pointer]:
+                      - /url: from?site=support.apple.com
+                    - text: )
+            - row [ref=f2e253]:
+              - cell [ref=f2e254]
+              - cell [ref=f2e255]:
+                - generic [ref=f2e256]:
+                  - text: 71 points by
+                  - link "Austin_Conlon" [ref=f2e257] [cursor=pointer]:
+                    - /url: user?id=Austin_Conlon
+                  - generic "2026-07-28T01:13:26 1785201206" [ref=f2e258]:
+                    - link "6 hours ago" [ref=f2e259] [cursor=pointer]:
+                      - /url: item?id=49077999
+                  - text: "|"
+                  - link "hide" [ref=f2e260] [cursor=pointer]:
+                    - /url: hide?id=49077999&goto=news
+                  - text: "|"
+                  - link "30 comments" [ref=f2e261] [cursor=pointer]:
+                    - /url: item?id=49077999
+            - row [ref=f2e262]
+            - row [ref=f2e263]:
+              - cell "12." [ref=f2e264]
+              - cell [ref=f2e265]:
+                - link "upvote" [ref=f2e267] [cursor=pointer]:
+                  - /url: vote?id=49045474&how=up&goto=news
+              - cell [ref=f2e269]:
+                - generic [ref=f2e270]:
+                  - link "Watching Go's new garbage collector move through the heap" [ref=f2e271] [cursor=pointer]:
+                    - /url: https://theconsensus.dev/p/2026/07/19/observing-gos-garbage-collector-old-and-new.html
+                  - generic [ref=f2e272]:
+                    - text: (
+                    - link "theconsensus.dev" [ref=f2e273] [cursor=pointer]:
+                      - /url: from?site=theconsensus.dev
+                    - text: )
+            - row [ref=f2e274]:
+              - cell [ref=f2e275]
+              - cell [ref=f2e276]:
+                - generic [ref=f2e277]:
+                  - text: 207 points by
+                  - link "matheusmoreira" [ref=f2e278] [cursor=pointer]:
+                    - /url: user?id=matheusmoreira
+                  - generic "2026-07-25T07:55:19 1784966119" [ref=f2e279]:
+                    - link "14 hours ago" [ref=f2e280] [cursor=pointer]:
+                      - /url: item?id=49045474
+                  - text: "|"
+                  - link "hide" [ref=f2e281] [cursor=pointer]:
+                    - /url: hide?id=49045474&goto=news
+                  - text: "|"
+                  - link "23 comments" [ref=f2e282] [cursor=pointer]:
+                    - /url: item?id=49045474
+            - row [ref=f2e283]
+            - row [ref=f2e284]:
+              - cell "13." [ref=f2e285]
+              - cell [ref=f2e286]:
+                - link "upvote" [ref=f2e288] [cursor=pointer]:
+                  - /url: vote?id=49076505&how=up&goto=news
+              - cell [ref=f2e290]:
+                - generic [ref=f2e291]:
+                  - link "Kimi K3 Now Available via Telnyx Inference API" [ref=f2e292] [cursor=pointer]:
+                    - /url: https://telnyx.com/release-notes/kimi-k3-telnyx-inference
+                  - generic [ref=f2e293]:
+                    - text: (
+                    - link "telnyx.com" [ref=f2e294] [cursor=pointer]:
+                      - /url: from?site=telnyx.com
+                    - text: )
+            - row [ref=f2e295]:
+              - cell [ref=f2e296]
+              - cell [ref=f2e297]:
+                - generic [ref=f2e298]:
+                  - text: 64 points by
+                  - link "fionaattelnyx" [ref=f2e299] [cursor=pointer]:
+                    - /url: user?id=fionaattelnyx
+                  - generic "2026-07-27T22:46:28 1785192388" [ref=f2e300]:
+                    - link "8 hours ago" [ref=f2e301] [cursor=pointer]:
+                      - /url: item?id=49076505
+                  - text: "|"
+                  - link "hide" [ref=f2e302] [cursor=pointer]:
+                    - /url: hide?id=49076505&goto=news
+                  - text: "|"
+                  - link "20 comments" [ref=f2e303] [cursor=pointer]:
+                    - /url: item?id=49076505
+            - row [ref=f2e304]
+            - row [ref=f2e305]:
+              - cell "14." [ref=f2e306]
+              - cell [ref=f2e307]:
+                - link "upvote" [ref=f2e309] [cursor=pointer]:
+                  - /url: vote?id=49073834&how=up&goto=news
+              - cell [ref=f2e311]:
+                - generic [ref=f2e312]:
+                  - 'link "Show HN: Yap – OSS on-device voice dictation for macOS with no model to download" [ref=f2e313] [cursor=pointer]':
+                    - /url: https://github.com/FrigadeHQ/yap
+                  - generic [ref=f2e314]:
+                    - text: (
+                    - link "github.com/frigadehq" [ref=f2e315] [cursor=pointer]:
+                      - /url: from?site=github.com/frigadehq
+                    - text: )
+            - row [ref=f2e316]:
+              - cell [ref=f2e317]
+              - cell [ref=f2e318]:
+                - generic [ref=f2e319]:
+                  - text: 56 points by
+                  - link "pancomplex" [ref=f2e320] [cursor=pointer]:
+                    - /url: user?id=pancomplex
+                  - generic "2026-07-27T18:36:02 1785177362" [ref=f2e321]:
+                    - link "6 hours ago" [ref=f2e322] [cursor=pointer]:
+                      - /url: item?id=49073834
+                  - text: "|"
+                  - link "hide" [ref=f2e323] [cursor=pointer]:
+                    - /url: hide?id=49073834&goto=news
+                  - text: "|"
+                  - link "16 comments" [ref=f2e324] [cursor=pointer]:
+                    - /url: item?id=49073834
+            - row [ref=f2e325]
+            - row [ref=f2e326]:
+              - cell "15." [ref=f2e327]
+              - cell [ref=f2e328]:
+                - link "upvote" [ref=f2e330] [cursor=pointer]:
+                  - /url: vote?id=49078463&how=up&goto=news
+              - cell [ref=f2e332]:
+                - generic [ref=f2e333]:
+                  - 'link "EYG: A Programming Language for Humans" [ref=f2e334] [cursor=pointer]':
+                    - /url: https://crowdhailer.me/2026-06-08/a-programming-language-for-humans/
+                  - generic [ref=f2e335]:
+                    - text: (
+                    - link "crowdhailer.me" [ref=f2e336] [cursor=pointer]:
+                      - /url: from?site=crowdhailer.me
+                    - text: )
+            - row [ref=f2e337]:
+              - cell [ref=f2e338]
+              - cell [ref=f2e339]:
+                - generic [ref=f2e340]:
+                  - text: 59 points by
+                  - link "crowdhailer" [ref=f2e341] [cursor=pointer]:
+                    - /url: user?id=crowdhailer
+                  - generic "2026-07-28T02:21:37 1785205297" [ref=f2e342]:
+                    - link "5 hours ago" [ref=f2e343] [cursor=pointer]:
+                      - /url: item?id=49078463
+                  - text: "|"
+                  - link "hide" [ref=f2e344] [cursor=pointer]:
+                    - /url: hide?id=49078463&goto=news
+                  - text: "|"
+                  - link "30 comments" [ref=f2e345] [cursor=pointer]:
+                    - /url: item?id=49078463
+            - row [ref=f2e346]
+            - row [ref=f2e347]:
+              - cell "16." [ref=f2e348]
+              - cell [ref=f2e349]:
+                - link "upvote" [ref=f2e351] [cursor=pointer]:
+                  - /url: vote?id=49076791&how=up&goto=news
+              - cell [ref=f2e353]:
+                - generic [ref=f2e354]:
+                  - link "C/C++ projects packaged for Zig" [ref=f2e355] [cursor=pointer]:
+                    - /url: https://github.com/allyourcodebase
+                  - generic [ref=f2e356]:
+                    - text: (
+                    - link "github.com/allyourcodebase" [ref=f2e357] [cursor=pointer]:
+                      - /url: from?site=github.com/allyourcodebase
+                    - text: )
+            - row [ref=f2e358]:
+              - cell [ref=f2e359]
+              - cell [ref=f2e360]:
+                - generic [ref=f2e361]:
+                  - text: 51 points by
+                  - link "jcbhmr" [ref=f2e362] [cursor=pointer]:
+                    - /url: user?id=jcbhmr
+                  - generic "2026-07-27T23:09:50 1785193790" [ref=f2e363]:
+                    - link "8 hours ago" [ref=f2e364] [cursor=pointer]:
+                      - /url: item?id=49076791
+                  - text: "|"
+                  - link "hide" [ref=f2e365] [cursor=pointer]:
+                    - /url: hide?id=49076791&goto=news
+                  - text: "|"
+                  - link "32 comments" [ref=f2e366] [cursor=pointer]:
+                    - /url: item?id=49076791
+            - row [ref=f2e367]
+            - row [ref=f2e368]:
+              - cell "17." [ref=f2e369]
+              - cell [ref=f2e370]:
+                - link "upvote" [ref=f2e372] [cursor=pointer]:
+                  - /url: vote?id=49074817&how=up&goto=news
+              - cell [ref=f2e374]:
+                - generic [ref=f2e375]:
+                  - 'link "Launch HN: Rise Reforming (YC S26) – Turning Waste Gases into Valuable Chemicals" [ref=f2e376] [cursor=pointer]':
+                    - /url: https://www.rise-reforming.com
+                  - generic [ref=f2e377]:
+                    - text: (
+                    - link "rise-reforming.com" [ref=f2e378] [cursor=pointer]:
+                      - /url: from?site=rise-reforming.com
+                    - text: )
+            - row [ref=f2e379]:
+              - cell [ref=f2e380]
+              - cell [ref=f2e381]:
+                - generic [ref=f2e382]:
+                  - text: 70 points by
+                  - link "george_rose25" [ref=f2e383] [cursor=pointer]:
+                    - /url: user?id=george_rose25
+                  - generic "2026-07-27T19:58:22 1785182302" [ref=f2e384]:
+                    - link "11 hours ago" [ref=f2e385] [cursor=pointer]:
+                      - /url: item?id=49074817
+                  - text: "|"
+                  - link "hide" [ref=f2e386] [cursor=pointer]:
+                    - /url: hide?id=49074817&goto=news
+                  - text: "|"
+                  - link "30 comments" [ref=f2e387] [cursor=pointer]:
+                    - /url: item?id=49074817
+            - row [ref=f2e388]
+            - row [ref=f2e389]:
+              - cell "18." [ref=f2e390]
+              - cell [ref=f2e391]:
+                - link "upvote" [ref=f2e393] [cursor=pointer]:
+                  - /url: vote?id=49076840&how=up&goto=news
+              - cell [ref=f2e395]:
+                - generic [ref=f2e396]:
+                  - link "DConf 2026 in London" [ref=f2e397] [cursor=pointer]:
+                    - /url: https://dconf.org/2026/index.html
+                  - generic [ref=f2e398]:
+                    - text: (
+                    - link "dconf.org" [ref=f2e399] [cursor=pointer]:
+                      - /url: from?site=dconf.org
+                    - text: )
+            - row [ref=f2e400]:
+              - cell [ref=f2e401]
+              - cell [ref=f2e402]:
+                - generic [ref=f2e403]:
+                  - text: 73 points by
+                  - link "teleforce" [ref=f2e404] [cursor=pointer]:
+                    - /url: user?id=teleforce
+                  - generic "2026-07-27T23:14:19 1785194059" [ref=f2e405]:
+                    - link "8 hours ago" [ref=f2e406] [cursor=pointer]:
+                      - /url: item?id=49076840
+                  - text: "|"
+                  - link "hide" [ref=f2e407] [cursor=pointer]:
+                    - /url: hide?id=49076840&goto=news
+                  - text: "|"
+                  - link "35 comments" [ref=f2e408] [cursor=pointer]:
+                    - /url: item?id=49076840
+            - row [ref=f2e409]
+            - row [ref=f2e410]:
+              - cell "19." [ref=f2e411]
+              - cell [ref=f2e412]:
+                - link "upvote" [ref=f2e414] [cursor=pointer]:
+                  - /url: vote?id=49034534&how=up&goto=news
+              - cell [ref=f2e416]:
+                - generic [ref=f2e417]:
+                  - link "Programming Languages Are Authoring Tools for Platforms" [ref=f2e418] [cursor=pointer]:
+                    - /url: https://www.makonea.com/en-US/blog/programming-languages-are-authoring-tools-for-platforms
+                  - generic [ref=f2e419]:
+                    - text: (
+                    - link "makonea.com" [ref=f2e420] [cursor=pointer]:
+                      - /url: from?site=makonea.com
+                    - text: )
+            - row [ref=f2e421]:
+              - cell [ref=f2e422]
+              - cell [ref=f2e423]:
+                - generic [ref=f2e424]:
+                  - text: 6 points by
+                  - link "jdw64" [ref=f2e425] [cursor=pointer]:
+                    - /url: user?id=jdw64
+                  - generic "2026-07-24T12:21:32 1784895692" [ref=f2e426]:
+                    - link "1 hour ago" [ref=f2e427] [cursor=pointer]:
+                      - /url: item?id=49034534
+                  - text: "|"
+                  - link "hide" [ref=f2e428] [cursor=pointer]:
+                    - /url: hide?id=49034534&goto=news
+                  - text: "|"
+                  - link "discuss" [ref=f2e429] [cursor=pointer]:
+                    - /url: item?id=49034534
+            - row [ref=f2e430]
+            - row [ref=f2e431]:
+              - cell "20." [ref=f2e432]
+              - cell [ref=f2e433]:
+                - link "upvote" [ref=f2e435] [cursor=pointer]:
+                  - /url: vote?id=49050021&how=up&goto=news
+              - cell [ref=f2e437]:
+                - generic [ref=f2e438]:
+                  - link "Three Theses on the Literacy Crisis" [ref=f2e439] [cursor=pointer]:
+                    - /url: https://trevoraleo.substack.com/p/three-theses-on-the-literacy-crisis
+                  - generic [ref=f2e440]:
+                    - text: (
+                    - link "trevoraleo.substack.com" [ref=f2e441] [cursor=pointer]:
+                      - /url: from?site=trevoraleo.substack.com
+                    - text: )
+            - row [ref=f2e442]:
+              - cell [ref=f2e443]
+              - cell [ref=f2e444]:
+                - generic [ref=f2e445]:
+                  - text: 43 points by
+                  - link "samclemens" [ref=f2e446] [cursor=pointer]:
+                    - /url: user?id=samclemens
+                  - generic "2026-07-25T18:05:59 1785002759" [ref=f2e447]:
+                    - link "7 hours ago" [ref=f2e448] [cursor=pointer]:
+                      - /url: item?id=49050021
+                  - text: "|"
+                  - link "hide" [ref=f2e449] [cursor=pointer]:
+                    - /url: hide?id=49050021&goto=news
+                  - text: "|"
+                  - link "32 comments" [ref=f2e450] [cursor=pointer]:
+                    - /url: item?id=49050021
+            - row [ref=f2e451]
+            - row [ref=f2e452]:
+              - cell "21." [ref=f2e453]
+              - cell [ref=f2e454]:
+                - link "upvote" [ref=f2e456] [cursor=pointer]:
+                  - /url: vote?id=49079146&how=up&goto=news
+              - cell [ref=f2e458]:
+                - generic [ref=f2e459]:
+                  - link "The age of token efficiency, the age of libraries" [ref=f2e460] [cursor=pointer]:
+                    - /url: https://golemui.com/blog/the-age-of-token-efficiency/
+                  - generic [ref=f2e461]:
+                    - text: (
+                    - link "golemui.com" [ref=f2e462] [cursor=pointer]:
+                      - /url: from?site=golemui.com
+                    - text: )
+            - row [ref=f2e463]:
+              - cell [ref=f2e464]
+              - cell [ref=f2e465]:
+                - generic [ref=f2e466]:
+                  - text: 19 points by
+                  - link "handfuloflight" [ref=f2e467] [cursor=pointer]:
+                    - /url: user?id=handfuloflight
+                  - generic "2026-07-28T03:56:08 1785210968" [ref=f2e468]:
+                    - link "3 hours ago" [ref=f2e469] [cursor=pointer]:
+                      - /url: item?id=49079146
+                  - text: "|"
+                  - link "hide" [ref=f2e470] [cursor=pointer]:
+                    - /url: hide?id=49079146&goto=news
+                  - text: "|"
+                  - link "discuss" [ref=f2e471] [cursor=pointer]:
+                    - /url: item?id=49079146
+            - row [ref=f2e472]
+            - row [ref=f2e473]:
+              - cell "22." [ref=f2e474]
+              - cell [ref=f2e475]:
+                - link "upvote" [ref=f2e477] [cursor=pointer]:
+                  - /url: vote?id=49021007&how=up&goto=news
+              - cell [ref=f2e479]:
+                - generic [ref=f2e480]:
+                  - link "Ray tracing massive amounts of animated geometry using tetrahedral cages" [ref=f2e481] [cursor=pointer]:
+                    - /url: https://gpuopen.com/learn/ray-tracing-massive-amounts-animated-geometry/
+                  - generic [ref=f2e482]:
+                    - text: (
+                    - link "gpuopen.com" [ref=f2e483] [cursor=pointer]:
+                      - /url: from?site=gpuopen.com
+                    - text: )
+            - row [ref=f2e484]:
+              - cell [ref=f2e485]
+              - cell [ref=f2e486]:
+                - generic [ref=f2e487]:
+                  - text: 97 points by
+                  - link "LorenDB" [ref=f2e488] [cursor=pointer]:
+                    - /url: user?id=LorenDB
+                  - generic "2026-07-23T13:10:06 1784812206" [ref=f2e489]:
+                    - link "12 hours ago" [ref=f2e490] [cursor=pointer]:
+                      - /url: item?id=49021007
+                  - text: "|"
+                  - link "hide" [ref=f2e491] [cursor=pointer]:
+                    - /url: hide?id=49021007&goto=news
+                  - text: "|"
+                  - link "12 comments" [ref=f2e492] [cursor=pointer]:
+                    - /url: item?id=49021007
+            - row [ref=f2e493]
+            - row [ref=f2e494]:
+              - cell "23." [ref=f2e495]
+              - cell [ref=f2e496]:
+                - link "upvote" [ref=f2e498] [cursor=pointer]:
+                  - /url: vote?id=49049724&how=up&goto=news
+              - cell [ref=f2e500]:
+                - generic [ref=f2e501]:
+                  - link "Some combinatorial applications of spacefilling curves" [ref=f2e502] [cursor=pointer]:
+                    - /url: https://www2.isye.gatech.edu/~jjb/research/mow/mow.html
+                  - generic [ref=f2e503]:
+                    - text: (
+                    - link "gatech.edu" [ref=f2e504] [cursor=pointer]:
+                      - /url: from?site=gatech.edu
+                    - text: )
+            - row [ref=f2e505]:
+              - cell [ref=f2e506]
+              - cell [ref=f2e507]:
+                - generic [ref=f2e508]:
+                  - text: 46 points by
+                  - link "shraiwi" [ref=f2e509] [cursor=pointer]:
+                    - /url: user?id=shraiwi
+                  - generic "2026-07-25T17:37:22 1785001042" [ref=f2e510]:
+                    - link "7 hours ago" [ref=f2e511] [cursor=pointer]:
+                      - /url: item?id=49049724
+                  - text: "|"
+                  - link "hide" [ref=f2e512] [cursor=pointer]:
+                    - /url: hide?id=49049724&goto=news
+                  - text: "|"
+                  - link "3 comments" [ref=f2e513] [cursor=pointer]:
+                    - /url: item?id=49049724
+            - row [ref=f2e514]
+            - row [ref=f2e515]:
+              - cell "24." [ref=f2e516]
+              - cell [ref=f2e517]:
+                - link "upvote" [ref=f2e519] [cursor=pointer]:
+                  - /url: vote?id=49073942&how=up&goto=news
+              - cell [ref=f2e521]:
+                - generic [ref=f2e522]:
+                  - link "Self-contained highly-portable Python distributions" [ref=f2e523] [cursor=pointer]:
+                    - /url: https://gregoryszorc.com/docs/python-build-standalone/main/
+                  - generic [ref=f2e524]:
+                    - text: (
+                    - link "gregoryszorc.com" [ref=f2e525] [cursor=pointer]:
+                      - /url: from?site=gregoryszorc.com
+                    - text: )
+            - row [ref=f2e526]:
+              - cell [ref=f2e527]
+              - cell [ref=f2e528]:
+                - generic [ref=f2e529]:
+                  - text: 136 points by
+                  - link "jcbhmr" [ref=f2e530] [cursor=pointer]:
+                    - /url: user?id=jcbhmr
+                  - generic "2026-07-27T18:43:31 1785177811" [ref=f2e531]:
+                    - link "12 hours ago" [ref=f2e532] [cursor=pointer]:
+                      - /url: item?id=49073942
+                  - text: "|"
+                  - link "hide" [ref=f2e533] [cursor=pointer]:
+                    - /url: hide?id=49073942&goto=news
+                  - text: "|"
+                  - link "29 comments" [ref=f2e534] [cursor=pointer]:
+                    - /url: item?id=49073942
+            - row [ref=f2e535]
+            - row [ref=f2e536]:
+              - cell "25." [ref=f2e537]
+              - cell [ref=f2e538]:
+                - link "upvote" [ref=f2e540] [cursor=pointer]:
+                  - /url: vote?id=49031322&how=up&goto=news
+              - cell [ref=f2e542]:
+                - generic [ref=f2e543]:
+                  - 'link "A Dying Art: The last of the morticians" [ref=f2e544] [cursor=pointer]':
+                    - /url: https://harpers.org/archive/2026/08/a-dying-art-john-semley-mortuary-sciences-competition/
+                  - generic [ref=f2e545]:
+                    - text: (
+                    - link "harpers.org" [ref=f2e546] [cursor=pointer]:
+                      - /url: from?site=harpers.org
+                    - text: )
+            - row [ref=f2e547]:
+              - cell [ref=f2e548]
+              - cell [ref=f2e549]:
+                - generic [ref=f2e550]:
+                  - text: 24 points by
+                  - link "Petiver" [ref=f2e551] [cursor=pointer]:
+                    - /url: user?id=Petiver
+                  - generic "2026-07-24T04:50:10 1784868610" [ref=f2e552]:
+                    - link "5 hours ago" [ref=f2e553] [cursor=pointer]:
+                      - /url: item?id=49031322
+                  - text: "|"
+                  - link "hide" [ref=f2e554] [cursor=pointer]:
+                    - /url: hide?id=49031322&goto=news
+                  - text: "|"
+                  - link "1 comment" [ref=f2e555] [cursor=pointer]:
+                    - /url: item?id=49031322
+            - row [ref=f2e556]
+            - row [ref=f2e557]:
+              - cell "26." [ref=f2e558]
+              - cell [ref=f2e559]:
+                - link "upvote" [ref=f2e561] [cursor=pointer]:
+                  - /url: vote?id=49021024&how=up&goto=news
+              - cell [ref=f2e563]:
+                - generic [ref=f2e564]:
+                  - link "Securing Services with Rootless Containers" [ref=f2e565] [cursor=pointer]:
+                    - /url: https://blog.coderspirit.xyz/blog/2026/07/06/securing-services-with-rootless-containers/
+                  - generic [ref=f2e566]:
+                    - text: (
+                    - link "coderspirit.xyz" [ref=f2e567] [cursor=pointer]:
+                      - /url: from?site=coderspirit.xyz
+                    - text: )
+            - row [ref=f2e568]:
+              - cell [ref=f2e569]
+              - cell [ref=f2e570]:
+                - generic [ref=f2e571]:
+                  - text: 90 points by
+                  - link "speckx" [ref=f2e572] [cursor=pointer]:
+                    - /url: user?id=speckx
+                  - generic "2026-07-23T13:11:30 1784812290" [ref=f2e573]:
+                    - link "11 hours ago" [ref=f2e574] [cursor=pointer]:
+                      - /url: item?id=49021024
+                  - text: "|"
+                  - link "hide" [ref=f2e575] [cursor=pointer]:
+                    - /url: hide?id=49021024&goto=news
+                  - text: "|"
+                  - link "28 comments" [ref=f2e576] [cursor=pointer]:
+                    - /url: item?id=49021024
+            - row [ref=f2e577]
+            - row [ref=f2e578]:
+              - cell "27." [ref=f2e579]
+              - cell [ref=f2e580]:
+                - link "upvote" [ref=f2e582] [cursor=pointer]:
+                  - /url: vote?id=49070138&how=up&goto=news
+              - cell [ref=f2e584]:
+                - generic [ref=f2e585]:
+                  - 'link "Paged Out #9 [pdf]" [ref=f2e586] [cursor=pointer]':
+                    - /url: https://pagedout.institute/download/PagedOut_009.pdf
+                  - generic [ref=f2e587]:
+                    - text: (
+                    - link "pagedout.institute" [ref=f2e588] [cursor=pointer]:
+                      - /url: from?site=pagedout.institute
+                    - text: )
+            - row [ref=f2e589]:
+              - cell [ref=f2e590]
+              - cell [ref=f2e591]:
+                - generic [ref=f2e592]:
+                  - text: 214 points by
+                  - link "laurensr" [ref=f2e593] [cursor=pointer]:
+                    - /url: user?id=laurensr
+                  - generic "2026-07-27T14:22:34 1785162154" [ref=f2e594]:
+                    - link "17 hours ago" [ref=f2e595] [cursor=pointer]:
+                      - /url: item?id=49070138
+                  - text: "|"
+                  - link "hide" [ref=f2e596] [cursor=pointer]:
+                    - /url: hide?id=49070138&goto=news
+                  - text: "|"
+                  - link "25 comments" [ref=f2e597] [cursor=pointer]:
+                    - /url: item?id=49070138
+            - row [ref=f2e598]
+            - row [ref=f2e599]:
+              - cell "28." [ref=f2e600]
+              - cell [ref=f2e601]:
+                - link "upvote" [ref=f2e603] [cursor=pointer]:
+                  - /url: vote?id=49071190&how=up&goto=news
+              - cell [ref=f2e605]:
+                - generic [ref=f2e606]:
+                  - link "How real are real numbers? (2004)" [ref=f2e607] [cursor=pointer]:
+                    - /url: https://arxiv.org/abs/math/0411418
+                  - generic [ref=f2e608]:
+                    - text: (
+                    - link "arxiv.org" [ref=f2e609] [cursor=pointer]:
+                      - /url: from?site=arxiv.org
+                    - text: )
+            - row [ref=f2e610]:
+              - cell [ref=f2e611]
+              - cell [ref=f2e612]:
+                - generic [ref=f2e613]:
+                  - text: 70 points by
+                  - link "surprisetalk" [ref=f2e614] [cursor=pointer]:
+                    - /url: user?id=surprisetalk
+                  - generic "2026-07-27T15:40:17 1785166817" [ref=f2e615]:
+                    - link "15 hours ago" [ref=f2e616] [cursor=pointer]:
+                      - /url: item?id=49071190
+                  - text: "|"
+                  - link "hide" [ref=f2e617] [cursor=pointer]:
+                    - /url: hide?id=49071190&goto=news
+                  - text: "|"
+                  - link "53 comments" [ref=f2e618] [cursor=pointer]:
+                    - /url: item?id=49071190
+            - row [ref=f2e619]
+            - row [ref=f2e620]:
+              - cell "29." [ref=f2e621]
+              - cell [ref=f2e622]:
+                - link "upvote" [ref=f2e624] [cursor=pointer]:
+                  - /url: vote?id=49076116&how=up&goto=news
+              - cell [ref=f2e626]:
+                - generic [ref=f2e627]:
+                  - link "A missing underscore sent innocent man to prison for 18 months" [ref=f2e628] [cursor=pointer]:
+                    - /url: https://arstechnica.com/tech-policy/2026/07/police-missed-one-underscore-and-sent-the-wrong-man-to-prison/
+                  - generic [ref=f2e629]:
+                    - text: (
+                    - link "arstechnica.com" [ref=f2e630] [cursor=pointer]:
+                      - /url: from?site=arstechnica.com
+                    - text: )
+            - row [ref=f2e631]:
+              - cell [ref=f2e632]
+              - cell [ref=f2e633]:
+                - generic [ref=f2e634]:
+                  - text: 252 points by
+                  - link "quantified" [ref=f2e635] [cursor=pointer]:
+                    - /url: user?id=quantified
+                  - generic "2026-07-27T22:10:15 1785190215" [ref=f2e636]:
+                    - link "9 hours ago" [ref=f2e637] [cursor=pointer]:
+                      - /url: item?id=49076116
+                  - text: "|"
+                  - link "hide" [ref=f2e638] [cursor=pointer]:
+                    - /url: hide?id=49076116&goto=news
+                  - text: "|"
+                  - link "134 comments" [ref=f2e639] [cursor=pointer]:
+                    - /url: item?id=49076116
+            - row [ref=f2e640]
+            - row [ref=f2e641]:
+              - cell "30." [ref=f2e642]
+              - cell [ref=f2e643]:
+                - link "upvote" [ref=f2e645] [cursor=pointer]:
+                  - /url: vote?id=49076923&how=up&goto=news
+              - cell [ref=f2e647]:
+                - generic [ref=f2e648]:
+                  - link "Netflix employee fired for sharing personal details in retreat trust exercise" [ref=f2e649] [cursor=pointer]:
+                    - /url: https://nypost.com/2026/07/26/us-news/netflix-exec-goes-ballistic-after-being-fired-for-stunning-trust-exercise-confession-at-retreat-suit/
+                  - generic [ref=f2e650]:
+                    - text: (
+                    - link "nypost.com" [ref=f2e651] [cursor=pointer]:
+                      - /url: from?site=nypost.com
+                    - text: )
+            - row [ref=f2e652]:
+              - cell [ref=f2e653]
+              - cell [ref=f2e654]:
+                - generic [ref=f2e655]:
+                  - text: 265 points by
+                  - link "softwaredoug" [ref=f2e656] [cursor=pointer]:
+                    - /url: user?id=softwaredoug
+                  - generic "2026-07-27T23:21:37 1785194497" [ref=f2e657]:
+                    - link "8 hours ago" [ref=f2e658] [cursor=pointer]:
+                      - /url: item?id=49076923
+                  - text: "|"
+                  - link "hide" [ref=f2e659] [cursor=pointer]:
+                    - /url: hide?id=49076923&goto=news
+                  - text: "|"
+                  - link "227 comments" [ref=f2e660] [cursor=pointer]:
+                    - /url: item?id=49076923
+            - row [ref=f2e661]
+            - row [ref=f2e662]
+            - row [ref=f2e663]:
+              - cell [ref=f2e664]
+              - cell [ref=f2e665]:
+                - link "More" [ref=f2e666] [cursor=pointer]:
+                  - /url: "?p=2"
+    - row [ref=f2e667]:
+      - cell [ref=f2e668]:
+        - table [ref=f2e669]:
+          - rowgroup [ref=f2e670]:
+            - row [ref=f2e671]:
+              - cell [ref=f2e672]
+        - link "Consider applying for YC's Fall 2026 batch! Applications are open till July 27." [ref=f2e674] [cursor=pointer]:
+          - /url: https://www.ycombinator.com/apply/
+        - generic [ref=f2e675]:
+          - generic [ref=f2e676]:
+            - link "Guidelines" [ref=f2e677] [cursor=pointer]:
+              - /url: newsguidelines.html
+            - text: "|"
+            - link "FAQ" [ref=f2e678] [cursor=pointer]:
+              - /url: newsfaq.html
+            - text: "|"
+            - link "Lists" [ref=f2e679] [cursor=pointer]:
+              - /url: lists
+            - text: "|"
+            - link "API" [ref=f2e680] [cursor=pointer]:
+              - /url: https://github.com/HackerNews/API
+            - text: "|"
+            - link "Security" [ref=f2e681] [cursor=pointer]:
+              - /url: security.html
+            - text: "|"
+            - link "Legal" [ref=f2e682] [cursor=pointer]:
+              - /url: https://www.ycombinator.com/legal/
+            - text: "|"
+            - link "Apply to YC" [ref=f2e683] [cursor=pointer]:
+              - /url: https://www.ycombinator.com/apply/
+            - text: "|"
+            - link "Contact" [ref=f2e684] [cursor=pointer]:
+              - /url: mailto:hn@ycombinator.com
+          - generic [ref=f2e685]:
+            - text: "Search:"
+            - textbox [ref=f2e686]

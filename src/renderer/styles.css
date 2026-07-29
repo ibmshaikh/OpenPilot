@@ -2444,6 +2444,44 @@ body.sidebar-resizing * {
   margin-inline: -1%;
 }
 
+/* Long sticky prompts clamp to ~2 lines so they don't cover the stream. */
+.turn.user.is-stuck.is-collapsible {
+  cursor: pointer;
+}
+
+.turn.user.is-stuck.is-collapsed .turn-body {
+  /* 2 lines + vertical padding (0.65rem * 2). */
+  max-height: calc(1em * 1.55 * 2 + 1.3rem);
+  overflow: hidden;
+  position: relative;
+}
+
+.turn.user.is-stuck.is-collapsed .turn-body::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1.65em;
+  pointer-events: none;
+  border-radius: 0 0 15px 15px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in srgb, var(--panel) 55%, transparent) 45%,
+    var(--panel) 100%
+  );
+}
+
+.turn.user.is-stuck.is-expanded .turn-body {
+  max-height: none;
+  overflow: visible;
+}
+
+.turn.user.is-stuck.is-expanded .turn-body::after {
+  display: none;
+}
+
 .turn.streaming {
   content-visibility: visible;
   animation: fade-up 0.28s ease;

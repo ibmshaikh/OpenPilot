@@ -202,6 +202,7 @@ export function initScrollListeners() {
     "scroll",
     () => {
       state.stickToBottom = isNearBottom();
+      collapseExpandedStickyUsers();
     },
     { passive: true }
   );
@@ -234,10 +235,121 @@ export function initScrollListeners() {
   );
 
   initStickyUserObserver();
+  initStickyUserCollapseInteractions();
 }
 
 /** Detect when a user turn is pinned so we can add stuck chrome. */
 let stickyUserObserver = null;
+/** Ignore scroll-driven collapse briefly after a click-expand (layout shift). */
+let stickyExpandIgnoreScrollUntil = 0;
+
+function clearStickyUserCollapse(userTurn) {
+  if (!userTurn) return;
+  userTurn.classList.remove("is-collapsed", "is-expanded", "is-collapsible");
+  userTurn.removeAttribute("aria-expanded");
+  userTurn.removeAttribute("title");
+  if (userTurn.getAttribute("role") === "button") {
+    userTurn.removeAttribute("role");
+    userTurn.removeAttribute("tabindex");
+  }
+}
+
+/**
+ * When a long user bubble is stuck at the top, clamp it to ~2 lines so it
+ * doesn't cover streaming content. Click expands; scroll collapses again.
+ */
+function syncStickyUserCollapse(userTurn, { forceCollapse = false } = {}) {
+  if (!userTurn) return;
+  const body = userTurn.querySelector(":scope > .turn-body");
+  if (!body) {
+    clearStickyUserCollapse(userTurn);
+    return;
+  }
+
+  const keepExpanded =
+    !forceCollapse && userTurn.classList.contains("is-expanded");
+
+  // Measure full height without the clamp.
+  userTurn.classList.remove("is-collapsed");
+  const style = getComputedStyle(body);
+  let lineHeight = parseFloat(style.lineHeight);
+  if (!Number.isFinite(lineHeight)) {
+    const fontSize = parseFloat(style.fontSize) || 14;
+    lineHeight = fontSize * 1.55;
+  }
+  const paddingY =
+    (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
+  const threshold = lineHeight * 2 + paddingY + 2;
+  const needsCollapse = body.scrollHeight > threshold;
+
+  if (!needsCollapse) {
+    clearStickyUserCollapse(userTurn);
+    return;
+  }
+
+  userTurn.classList.add("is-collapsible");
+  userTurn.setAttribute("role", "button");
+  userTurn.setAttribute("tabindex", "0");
+  if (keepExpanded) {
+    userTurn.classList.add("is-expanded");
+    userTurn.classList.remove("is-collapsed");
+    userTurn.setAttribute("aria-expanded", "true");
+    userTurn.setAttribute("title", "Scroll to collapse");
+  } else {
+    userTurn.classList.add("is-collapsed");
+    userTurn.classList.remove("is-expanded");
+    userTurn.setAttribute("aria-expanded", "false");
+    userTurn.setAttribute("title", "Click to expand");
+  }
+}
+
+function collapseExpandedStickyUsers() {
+  if (!messagesEl) return;
+  if (Date.now() < stickyExpandIgnoreScrollUntil) return;
+  messagesEl
+    .querySelectorAll(".turn.user.is-stuck.is-expanded.is-collapsible")
+    .forEach((turn) => {
+      turn.classList.remove("is-expanded");
+      turn.classList.add("is-collapsed");
+      turn.setAttribute("aria-expanded", "false");
+      turn.setAttribute("title", "Click to expand");
+    });
+}
+
+function toggleStickyUserExpanded(userTurn) {
+  if (!userTurn?.classList.contains("is-collapsible")) return;
+  if (!userTurn.classList.contains("is-stuck")) return;
+  const expand = !userTurn.classList.contains("is-expanded");
+  stickyExpandIgnoreScrollUntil = Date.now() + 180;
+  userTurn.classList.toggle("is-expanded", expand);
+  userTurn.classList.toggle("is-collapsed", !expand);
+  userTurn.setAttribute("aria-expanded", expand ? "true" : "false");
+  userTurn.setAttribute(
+    "title",
+    expand ? "Scroll to collapse" : "Click to expand"
+  );
+}
+
+function initStickyUserCollapseInteractions() {
+  if (!messagesEl || messagesEl.dataset.stickyCollapseBound === "1") return;
+  messagesEl.dataset.stickyCollapseBound = "1";
+
+  messagesEl.addEventListener("click", (event) => {
+    if (event.target.closest("a, button, input, textarea, select")) return;
+    const userTurn = event.target.closest(".turn.user.is-stuck.is-collapsible");
+    if (!userTurn || !messagesEl.contains(userTurn)) return;
+    event.preventDefault();
+    toggleStickyUserExpanded(userTurn);
+  });
+
+  messagesEl.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const userTurn = event.target.closest?.(".turn.user.is-stuck.is-collapsible");
+    if (!userTurn || event.target !== userTurn) return;
+    event.preventDefault();
+    toggleStickyUserExpanded(userTurn);
+  });
+}
 
 function initStickyUserObserver() {
   if (!messagesEl || stickyUserObserver) return;
@@ -250,7 +362,14 @@ function initStickyUserObserver() {
         const rootTop = entry.rootBounds?.top ?? 0;
         const stuck =
           !entry.isIntersecting && entry.boundingClientRect.bottom <= rootTop + 1;
+        const wasStuck = userTurn.classList.contains("is-stuck");
         userTurn.classList.toggle("is-stuck", stuck);
+        if (stuck) {
+          // Newly stuck → start collapsed. Stay-stuck → keep expand if open.
+          syncStickyUserCollapse(userTurn, { forceCollapse: !wasStuck });
+        } else {
+          clearStickyUserCollapse(userTurn);
+        }
       }
     },
     { root: messagesEl, threshold: 0 }

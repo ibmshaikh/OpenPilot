@@ -1,0 +1,59 @@
+- main [ref=f5e4]:
+  - generic [ref=f5e6]:
+    - generic [ref=f5e9]:
+      - heading "Happening now." [level=1] [ref=f5e10]
+      - img "Loading spinner" [ref=f5e16]
+    - navigation "Footer" [ref=f5e24]:
+      - generic [ref=f5e25]:
+        - link "About" [ref=f5e26] [cursor=pointer]:
+          - /url: https://about.x.com
+        - generic [ref=f5e27]: ·
+      - generic [ref=f5e28]:
+        - link "Get App" [ref=f5e29] [cursor=pointer]:
+          - /url: https://help.x.com/using-x/download-the-x-app
+        - generic [ref=f5e30]: ·
+      - generic [ref=f5e31]:
+        - link "Grok" [ref=f5e32] [cursor=pointer]:
+          - /url: https://grok.com?referrer=x_footer
+        - generic [ref=f5e33]: ·
+      - generic [ref=f5e34]:
+        - link "Imagine" [ref=f5e35] [cursor=pointer]:
+          - /url: https://grok.com/imagine?referrer=x_footer
+        - generic [ref=f5e36]: ·
+      - generic [ref=f5e37]:
+        - link "Help" [ref=f5e38] [cursor=pointer]:
+          - /url: https://help.x.com
+        - generic [ref=f5e39]: ·
+      - generic [ref=f5e40]:
+        - link "Terms" [ref=f5e41] [cursor=pointer]:
+          - /url: https://x.com/tos
+        - generic [ref=f5e42]: ·
+      - generic [ref=f5e43]:
+        - link "Privacy" [ref=f5e44] [cursor=pointer]:
+          - /url: https://x.com/privacy
+        - generic [ref=f5e45]: ·
+      - generic [ref=f5e46]:
+        - link "Cookies" [ref=f5e47] [cursor=pointer]:
+          - /url: https://support.x.com/articles/20170514
+        - generic [ref=f5e48]: ·
+      - generic [ref=f5e49]:
+        - link "Careers" [ref=f5e50] [cursor=pointer]:
+          - /url: https://careers.x.com
+        - generic [ref=f5e51]: ·
+      - generic [ref=f5e52]:
+        - link "Ads & Business" [ref=f5e53] [cursor=pointer]:
+          - /url: https://business.x.com/advertising?ref=gl-tw-tw-twitter-advertise
+        - generic [ref=f5e54]: ·
+      - generic [ref=f5e55]:
+        - link "Developers" [ref=f5e56] [cursor=pointer]:
+          - /url: https://developer.x.com
+        - generic [ref=f5e57]: ·
+      - generic [ref=f5e58]:
+        - link "News" [ref=f5e59] [cursor=pointer]:
+          - /url: https://x.com/i/jf/stories/home
+        - generic [ref=f5e60]: ·
+      - generic [ref=f5e61]:
+        - link "Accessibility" [ref=f5e62] [cursor=pointer]:
+          - /url: https://help.x.com/resources/accessibility
+        - generic [ref=f5e63]: ·
+      - generic [ref=f5e64]: © 2026 X Corp.
