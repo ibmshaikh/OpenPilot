@@ -220,6 +220,17 @@ export async function copyTextToClipboard(text) {
   }
 }
 
+export async function readTextFromClipboard() {
+  try {
+    if (navigator.clipboard?.readText) {
+      return String(await navigator.clipboard.readText());
+    }
+  } catch {
+    // fall through
+  }
+  return "";
+}
+
 export function flashCopied(button, label = "Copy") {
   if (!button) return;
   const prev = button.textContent;

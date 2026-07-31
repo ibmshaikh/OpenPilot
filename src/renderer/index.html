@@ -260,18 +260,33 @@
                     aria-expanded="false"
                     aria-controls="model-menu"
                   >
-                    <svg class="plus" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-                      <path d="M6 2v8M2 6h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-                    </svg>
+                    <span class="model-chip-logo" id="model-chip-logo" aria-hidden="true">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/>
+                        <path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                      </svg>
+                    </span>
                     <span id="model-label">No model</span>
                     <svg class="chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
                       <path d="M2.5 3.5 5 6l2.5-2.5" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                   </button>
 
-                  <div class="model-menu" id="model-menu" role="listbox" hidden>
-                    <div class="model-menu-empty" id="model-menu-empty">No models yet. Add one in Settings.</div>
-                    <div class="model-menu-list" id="model-menu-list"></div>
+                  <div class="model-menu" id="model-menu" role="listbox" aria-label="Models" hidden>
+                    <div class="model-menu-header">
+                      <p class="model-menu-title">Models</p>
+                      <p class="model-menu-hint">Switch the model used for this chat.</p>
+                    </div>
+                    <div class="model-menu-section">
+                      <div class="model-menu-list" id="model-menu-list"></div>
+                      <div class="model-menu-empty" id="model-menu-empty">
+                        <p class="model-menu-empty-title">No models yet</p>
+                        <p class="model-menu-empty-body">Add a provider and model in Settings to start chatting.</p>
+                      </div>
+                    </div>
+                    <button type="button" class="model-menu-settings" id="model-menu-open-settings">
+                      Manage models
+                    </button>
                   </div>
                 </div>
 
@@ -438,14 +453,6 @@
               </div>
             </div>
           </form>
-
-          <div class="actions" id="actions">
-            <button class="action-pill" type="button" id="plan-pill">
-              <span>Plan New Idea</span>
-              <kbd>⇧Tab</kbd>
-            </button>
-            <button class="action-pill" type="button" id="multitask-pill">Multitask</button>
-          </div>
         </div>
       </section>
         </main>
@@ -963,7 +970,7 @@
         <header class="modal-header">
           <div>
             <h2 id="model-form-title">Add new model</h2>
-            <p id="model-form-subtitle">Enter OpenAI-compatible endpoint details.</p>
+            <p id="model-form-subtitle">Pick a provider, enter a key, then verify before saving.</p>
           </div>
           <button class="modal-close" id="model-form-close" type="button" aria-label="Close model form">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -974,21 +981,113 @@
 
         <form class="modal-body model-form" id="model-form">
           <input type="hidden" id="model-id" value="" />
+          <input type="hidden" id="model-provider-id" value="" />
+
+          <div class="field">
+            <span class="label" id="model-provider-label">LLM Provider</span>
+            <div class="provider-picker" id="model-provider-picker">
+              <button
+                type="button"
+                class="provider-picker-trigger"
+                id="model-provider-trigger"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-labelledby="model-provider-label model-provider-trigger-label"
+              >
+                <span class="provider-picker-logo" id="model-provider-logo" aria-hidden="true"></span>
+                <span class="provider-picker-text">
+                  <span class="provider-picker-name" id="model-provider-trigger-label">Select a provider</span>
+                  <span class="provider-picker-desc" id="model-provider-trigger-desc"></span>
+                </span>
+                <svg class="provider-picker-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <div class="provider-picker-menu" id="model-provider-menu" role="listbox" hidden></div>
+            </div>
+            <div class="field-hint-row">
+              <span class="field-hint">Base URL auto-fills from the provider. Models load after you enter a key.</span>
+              <a
+                class="field-hint-link"
+                id="model-provider-key-link"
+                href="#"
+                target="_blank"
+                rel="noreferrer"
+                hidden
+              >
+                Get API Key
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                  <path d="M2.5 7.5L7.5 2.5M4 2.5h3.5V6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </a>
+            </div>
+          </div>
 
           <label class="field">
-            <span class="label">Model Name</span>
-            <input id="model-name" type="text" placeholder="e.g. gpt-4o-mini" required />
+            <span class="label">OpenAI Compatible Base URL</span>
+            <div class="input-with-icon">
+              <input id="model-base-url" type="url" placeholder="https://api.openai.com/v1" required />
+              <svg class="input-trailing-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <circle cx="7" cy="7" r="5.25" stroke="currentColor" stroke-width="1.2" />
+                <path d="M2.5 7h9M7 2.5c1.4 1.6 1.4 7.4 0 9M7 2.5c-1.4 1.6-1.4 7.4 0 9" stroke="currentColor" stroke-width="1.2" />
+              </svg>
+            </div>
           </label>
 
-          <label class="field">
-            <span class="label">OpenAI Compatible base URL</span>
-            <input id="model-base-url" type="url" placeholder="https://api.openai.com/v1" required />
-          </label>
+          <div class="field">
+            <span class="label" id="model-api-key-label">API Key</span>
+            <div class="api-key-row">
+              <div class="input-with-icon api-key-input-wrap">
+                <input
+                  id="model-api-key"
+                  type="password"
+                  placeholder="sk-..."
+                  required
+                  autocomplete="off"
+                  aria-labelledby="model-api-key-label"
+                />
+                <button
+                  type="button"
+                  class="input-icon-btn"
+                  id="model-api-key-toggle"
+                  aria-label="Show API key"
+                  title="Show API key"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M1.5 7s2-3.5 5.5-3.5S12.5 7 12.5 7s-2 3.5-5.5 3.5S1.5 7 1.5 7z" stroke="currentColor" stroke-width="1.2" />
+                    <circle cx="7" cy="7" r="1.6" stroke="currentColor" stroke-width="1.2" />
+                  </svg>
+                </button>
+              </div>
+              <button type="button" class="btn secondary verify-btn" id="model-verify-btn">
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path d="M7 1.5l4.5 2v3.2c0 2.7-1.9 4.6-4.5 5.8-2.6-1.2-4.5-3.1-4.5-5.8V3.5L7 1.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" />
+                  <path d="M4.8 7.1l1.5 1.5 2.9-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                Verify Key
+              </button>
+            </div>
+            <p class="verify-status" id="model-verify-status" hidden></p>
+          </div>
 
-          <label class="field">
-            <span class="label">API Key</span>
-            <input id="model-api-key" type="password" placeholder="sk-..." required autocomplete="off" />
-          </label>
+          <div class="field" id="model-name-field">
+            <div class="field-label-row">
+              <span class="label" id="model-name-label">Model Name</span>
+              <button type="button" class="text-btn" id="model-refresh-btn" hidden>
+                Refresh models
+              </button>
+            </div>
+            <select id="model-name-select" aria-labelledby="model-name-label" hidden></select>
+            <input
+              id="model-name"
+              type="text"
+              placeholder="Enter API key to load models"
+              required
+              autocomplete="off"
+              aria-labelledby="model-name-label"
+            />
+            <p class="models-fetch-status" id="model-fetch-status" hidden></p>
+          </div>
 
           <label class="field">
             <span class="label">Model Display Name</span>
@@ -999,7 +1098,12 @@
 
           <div class="modal-actions form-actions">
             <button type="button" class="btn secondary" id="model-form-cancel">Cancel</button>
-            <button type="submit" class="btn primary" id="model-form-save">Save model</button>
+            <button type="submit" class="btn primary" id="model-form-save" disabled>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M2.5 6.2l2.4 2.4 4.6-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              Save model
+            </button>
           </div>
         </form>
       </div>

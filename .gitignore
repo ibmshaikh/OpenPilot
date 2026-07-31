@@ -33,4 +33,4 @@ graphify-out/
 /changesNeede.md
 /generatedFiles.md
 website/
-/playwright-mcp/
+.playwright-mcp/

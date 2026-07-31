@@ -114,6 +114,7 @@ export function setTurnContent(turnRef, markdown) {
   // Legacy helper for user/error turns that use a single body.
   turnRef.raw = String(markdown ?? "");
   if (turnRef.body) {
+    turnRef.body._raw = turnRef.raw;
     turnRef.body.innerHTML = renderMarkdown(turnRef.raw);
   }
 }

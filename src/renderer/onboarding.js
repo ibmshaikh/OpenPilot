@@ -20,12 +20,14 @@ import {
   form,
   shell,
 } from "./dom.js";
-import { state, SELECTED_MODEL_KEY, applyWorkspaceToUi } from "./state.js";
+import { state, applyWorkspaceToUi } from "./state.js";
 import { openSettings, renderModelList } from "./settings.js";
 import {
   syncComposerModelLabel,
   syncComposerSetupBanner,
   renderModelMenu,
+  setSelectedModel,
+  setDefaultModel,
 } from "./composer.js";
 import { clearThreadLoadingState } from "./chat.js";
 
@@ -123,18 +125,27 @@ async function pickOnboardingWorkspace() {
 }
 
 async function refreshModelsLocal() {
-  state.customModels = await window.onecode.models.list();
-  if (state.customModels.length && !state.customModels.some((m) => m.id === state.selectedModelId)) {
-    state.selectedModelId = state.customModels[0].id;
-    localStorage.setItem(SELECTED_MODEL_KEY, String(state.selectedModelId));
-  }
-  if (!state.customModels.length) {
-    state.selectedModelId = null;
-    localStorage.removeItem(SELECTED_MODEL_KEY);
+  const [models, defaultResult] = await Promise.all([
+    window.onecode.models.list(),
+    window.onecode.models.getDefault().catch(() => ({ id: null })),
+  ]);
+  state.customModels = models;
+
+  const persistedDefault = Number(defaultResult?.id) || null;
+  const isValid = (id) =>
+    id != null && state.customModels.some((m) => m.id === id);
+
+  state.defaultModelId = isValid(persistedDefault)
+    ? persistedDefault
+    : state.customModels[0]?.id || null;
+
+  if (!isValid(state.selectedModelId)) {
+    setSelectedModel(state.defaultModelId);
+  } else {
+    syncComposerModelLabel();
+    renderModelMenu();
   }
   renderModelList();
-  renderModelMenu();
-  syncComposerModelLabel();
   syncComposerSetupBanner();
 }
 
@@ -181,9 +192,11 @@ async function persistModelStep({ strict = false } = {}) {
 
   try {
     const created = await window.onecode.models.create(payload);
-    if (created?.id) {
-      state.selectedModelId = created.id;
-      localStorage.setItem(SELECTED_MODEL_KEY, String(created.id));
+    const hasDefault = state.customModels.some((m) => m.id === state.defaultModelId);
+    if (!hasDefault && created?.id) {
+      setDefaultModel(created.id, { syncSelection: true });
+    } else if (created?.id && state.selectedModelId == null) {
+      setSelectedModel(created.id);
     }
     await refreshModelsLocal();
     onboardingModelForm?.reset();
@@ -310,17 +323,19 @@ async function unlockChatAfterOnboarding() {
   form?.classList.remove("sending");
 
   try {
-    state.customModels = await window.onecode.models.list();
-    if (
-      state.customModels.length &&
-      !state.customModels.some((m) => m.id === state.selectedModelId)
-    ) {
-      state.selectedModelId = state.customModels[0].id;
-      localStorage.setItem(SELECTED_MODEL_KEY, String(state.selectedModelId));
-    }
-    if (!state.customModels.length) {
-      state.selectedModelId = null;
-      localStorage.removeItem(SELECTED_MODEL_KEY);
+    const [models, defaultResult] = await Promise.all([
+      window.onecode.models.list(),
+      window.onecode.models.getDefault().catch(() => ({ id: null })),
+    ]);
+    state.customModels = models;
+    const persistedDefault = Number(defaultResult?.id) || null;
+    const isValid = (id) =>
+      id != null && state.customModels.some((m) => m.id === id);
+    state.defaultModelId = isValid(persistedDefault)
+      ? persistedDefault
+      : state.customModels[0]?.id || null;
+    if (!isValid(state.selectedModelId)) {
+      setSelectedModel(state.defaultModelId);
     }
   } catch (error) {
     console.error(error);

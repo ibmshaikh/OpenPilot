@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld("onecode", {
     checkForUpdates: () => ipcRenderer.invoke("app:checkForUpdates"),
     installUpdate: () => ipcRenderer.invoke("app:installUpdate"),
     getUpdateState: () => ipcRenderer.invoke("app:getUpdateState"),
+    openExternal: (url) => ipcRenderer.invoke("app:openExternal", url),
     onUpdateEvent: (handler) => {
       const listener = (_event, data) => handler(data);
       ipcRenderer.on("app:update-event", listener);
@@ -20,9 +21,13 @@ contextBridge.exposeInMainWorld("onecode", {
   },
   models: {
     list: () => ipcRenderer.invoke("models:list"),
+    listRemote: (payload) => ipcRenderer.invoke("models:listRemote", payload),
+    verify: (payload) => ipcRenderer.invoke("models:verify", payload),
     create: (payload) => ipcRenderer.invoke("models:create", payload),
     update: (id, payload) => ipcRenderer.invoke("models:update", id, payload),
     delete: (id) => ipcRenderer.invoke("models:delete", id),
+    getDefault: () => ipcRenderer.invoke("models:getDefault"),
+    setDefault: (id) => ipcRenderer.invoke("models:setDefault", id),
   },
   settings: {
     getTinyFish: () => ipcRenderer.invoke("settings:tinyfish:get"),

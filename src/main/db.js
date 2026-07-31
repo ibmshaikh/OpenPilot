@@ -15,6 +15,7 @@ const SECRET_PREFIX = "enc:v2:";
 const TINYFISH_SETTINGS_KEY = "tinyfish";
 const MEMORY_SETTINGS_KEY = "memory";
 const ONBOARDING_SETTINGS_KEY = "onboarding";
+const DEFAULT_MODEL_SETTINGS_KEY = "defaultModelId";
 
 function getDbPath() {
   return path.join(app.getPath("userData"), "onecode.sqlite");
@@ -581,7 +582,52 @@ function updateModel(id, { modelName, baseUrl, apiKey, displayName }) {
 
 function deleteModel(id) {
   const result = initDatabase().prepare(`DELETE FROM models WHERE id = ?`).run(id);
+  const currentDefault = getDefaultModelId();
+  if (currentDefault === Number(id)) {
+    setDefaultModelId(null);
+  }
   return { success: result.changes > 0 };
+}
+
+function getDefaultModelId() {
+  const row = initDatabase()
+    .prepare(`SELECT value FROM settings WHERE key = ?`)
+    .get(DEFAULT_MODEL_SETTINGS_KEY);
+
+  if (!row?.value) return null;
+
+  try {
+    const parsed = JSON.parse(row.value);
+    const nextId = Number(parsed?.id);
+    return Number.isInteger(nextId) && nextId > 0 ? nextId : null;
+  } catch {
+    return null;
+  }
+}
+
+function setDefaultModelId(id) {
+  const numericId = id == null || id === "" ? null : Number(id);
+  const next =
+    Number.isInteger(numericId) && numericId > 0 ? numericId : null;
+
+  if (next != null) {
+    const exists = getModel(next);
+    if (!exists) {
+      throw new Error("Cannot set default: model not found.");
+    }
+  }
+
+  initDatabase()
+    .prepare(
+      `INSERT INTO settings (key, value, updated_at)
+       VALUES (?, ?, datetime('now'))
+       ON CONFLICT(key) DO UPDATE SET
+         value = excluded.value,
+         updated_at = datetime('now')`
+    )
+    .run(DEFAULT_MODEL_SETTINGS_KEY, JSON.stringify({ id: next }));
+
+  return { id: next };
 }
 
 function mapConversation(row) {
@@ -754,6 +800,8 @@ module.exports = {
   createModel,
   updateModel,
   deleteModel,
+  getDefaultModelId,
+  setDefaultModelId,
   getTinyFishSettings,
   saveTinyFishSettings,
   getOnboardingSettings,

@@ -3,8 +3,6 @@ import {
   input,
   sendBtn,
   runStatusBtn,
-  planPill,
-  multitaskPill,
   polishChip,
   polishChipLabel,
   newChatBtn,
@@ -18,6 +16,7 @@ import {
   mcpMenuOpenSettings,
   mcpMenu,
   modelMenu,
+  modelMenuOpenSettings,
   skillsSlashMenu,
   settingsBtn,
   settingsClose,
@@ -65,7 +64,6 @@ import {
   handleComposerKeydown,
   handleComposerInput,
   getComposerPlainText,
-  getComposerSelectedSkills,
   getSelectedModel,
   setComposerPlainText,
   closeSkillsSlashMenu,
@@ -90,6 +88,7 @@ import {
   openModelForm,
   closeModelForm,
   saveModel,
+  initModelFormControls,
   openSkillForm,
   closeSkillForm,
   saveSkill,
@@ -114,7 +113,6 @@ import {
   stopAgent,
   submitPrompt,
   createNewChat,
-  addTurn,
   showChatError,
   initScrollListeners,
   initChatEvents,
@@ -123,9 +121,12 @@ import {
   refreshConversationList,
   showThreadLoadingSkeleton,
   clearThreadLoadingState,
+  openAppContextMenu,
+  closeAppContextMenu,
 } from "./chat.js";
 import { initContextUsage, refreshContextUsage } from "./context-usage.js";
 import { initWorkspaceMenu } from "./workspace-menu.js";
+import { copyTextToClipboard, readTextFromClipboard } from "./syntax.js";
 
 initScrollListeners();
 initChatEvents();
@@ -133,6 +134,69 @@ initSidebarResize();
 initContextUsage();
 initAttachments();
 initWorkspaceMenu();
+initModelFormControls();
+initComposerContextMenu();
+
+function initComposerContextMenu() {
+  if (!input || input.dataset.composerContextBound === "1") return;
+  input.dataset.composerContextBound = "1";
+
+  input.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
+
+    let savedRange = null;
+    const sel = window.getSelection();
+    if (sel?.rangeCount && input.contains(sel.anchorNode)) {
+      savedRange = sel.getRangeAt(0).cloneRange();
+    }
+
+    const selected =
+      savedRange && !savedRange.collapsed ? String(savedRange.toString()) : "";
+    const allText = getComposerPlainText();
+    const copyText = selected || allText;
+
+    openAppContextMenu(event.clientX, event.clientY, [
+      {
+        label: "Copy",
+        disabled: !String(copyText || "").trim(),
+        keepOpen: true,
+        run: async (btn) => {
+          const ok = await copyTextToClipboard(copyText);
+          if (ok) {
+            btn.textContent = "Copied";
+            btn.classList.add("is-copied");
+            window.setTimeout(() => closeAppContextMenu(), 700);
+          } else {
+            closeAppContextMenu();
+          }
+        },
+      },
+      {
+        label: "Paste",
+        run: async () => {
+          const text = await readTextFromClipboard();
+          if (!text) return;
+          input.focus();
+          if (savedRange && input.contains(savedRange.startContainer)) {
+            const next = window.getSelection();
+            next.removeAllRanges();
+            next.addRange(savedRange);
+          } else {
+            // Fallback: caret at end if the saved range was lost.
+            const range = document.createRange();
+            range.selectNodeContents(input);
+            range.collapse(false);
+            const next = window.getSelection();
+            next.removeAllRanges();
+            next.addRange(range);
+          }
+          document.execCommand("insertText", false, text);
+          handleComposerInput();
+        },
+      },
+    ]);
+  });
+}
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -199,20 +263,6 @@ document.addEventListener("mousedown", (event) => {
   closeSkillsSlashMenu();
 });
 syncSendButton();
-
-planPill.addEventListener("click", () => {
-  if (!getComposerPlainText().trim() && !getComposerSelectedSkills().length) {
-    setComposerPlainText("Plan a new idea: ");
-    input.focus();
-    return;
-  }
-  submitPrompt("Plan: ");
-});
-
-multitaskPill.addEventListener("click", () => {
-  addTurn("Multitask mode — describe parallel tasks to run.", "agent");
-  input.focus();
-});
 
 let polishInFlight = false;
 /** Captured on pointerdown so focus loss cannot race the click handler. */
@@ -347,6 +397,13 @@ if (mcpMenuOpenSettings) {
     closeMcpMenu();
     state.activeSettingsSection = "mcp";
     openSettings();
+  });
+}
+
+if (modelMenuOpenSettings) {
+  modelMenuOpenSettings.addEventListener("click", () => {
+    closeModelMenu();
+    openSettings("models");
   });
 }
 

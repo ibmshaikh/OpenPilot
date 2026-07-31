@@ -8,6 +8,7 @@ import {
   modelMenu,
   modelPicker,
   modelChip,
+  modelChipLogo,
   modelMenuList,
   modelMenuEmpty,
   mcpMenu,
@@ -18,7 +19,6 @@ import {
   mcpMenuActions,
   mcpMenuList,
   mcpMenuEmpty,
-  planPill,
   composerAttachments,
   attachBtn,
   attachInput,
@@ -32,8 +32,52 @@ import {
 } from "./state.js";
 import { stopAgent, submitPrompt } from "./chat.js";
 import { refreshContextUsage } from "./context-usage.js";
+import { matchProvider } from "./llm-providers.js";
 
 const MAX_ATTACHMENTS = 6;
+
+const FALLBACK_MODEL_LOGO = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+
+/**
+ * Derive clean picker labels from a saved model config.
+ * Strips redundant "Provider: …" prefixes from display names.
+ */
+function formatModelPickerEntry(model) {
+  const provider = matchProvider(model);
+  const display = String(model?.displayName || "").trim();
+  const modelId = String(model?.modelName || "").trim();
+  const providerName = provider?.name || "Custom";
+  const prefix = `${providerName}: `;
+
+  let title = display || modelId || "Untitled model";
+  if (display.toLowerCase().startsWith(prefix.toLowerCase())) {
+    title = display.slice(prefix.length).trim() || modelId || title;
+  }
+
+  const meta =
+    provider?.id === "custom"
+      ? shortenBaseUrl(model?.baseUrl) || "Custom"
+      : providerName;
+
+  return { title, meta, provider, chipLabel: title };
+}
+
+function shortenBaseUrl(url) {
+  try {
+    const parsed = new URL(String(url || "").trim());
+    return parsed.host || "";
+  } catch {
+    return String(url || "")
+      .replace(/^https?:\/\//i, "")
+      .replace(/\/+$/, "")
+      .slice(0, 40);
+  }
+}
+
+function setModelChipLogo(provider) {
+  if (!modelChipLogo) return;
+  modelChipLogo.innerHTML = provider?.logoSvg || FALLBACK_MODEL_LOGO;
+}
 
 export function getPendingAttachments() {
   const session = getSession();
@@ -473,11 +517,6 @@ export function handleComposerKeydown(event) {
     submitPrompt();
     return;
   }
-
-  if (event.key === "Tab" && event.shiftKey) {
-    event.preventDefault();
-    planPill.click();
-  }
 }
 
 export function handleComposerInput() {
@@ -500,32 +539,95 @@ export function maskKey(key) {
 
 export function getSelectedModel() {
   if (!state.customModels.length) return null;
-  return state.customModels.find((model) => model.id === state.selectedModelId) || state.customModels[0];
+  if (state.selectedModelId == null) return null;
+  return (
+    state.customModels.find((model) => model.id === state.selectedModelId) || null
+  );
 }
 
+export function getDefaultModel() {
+  if (!state.customModels.length) return null;
+  if (state.defaultModelId == null) return null;
+  return (
+    state.customModels.find((model) => model.id === state.defaultModelId) || null
+  );
+}
+
+function normalizeModelId(id) {
+  if (id == null || id === "") return null;
+  const next = Number(id);
+  return Number.isInteger(next) && next > 0 ? next : null;
+}
+
+/**
+ * Change the model used in chat. Does not change the Settings default.
+ */
 export function setSelectedModel(id) {
-  state.selectedModelId = id;
-  if (id == null) {
+  const next = normalizeModelId(id);
+  state.selectedModelId = next;
+  if (next == null) {
     localStorage.removeItem(SELECTED_MODEL_KEY);
   } else {
-    localStorage.setItem(SELECTED_MODEL_KEY, String(id));
+    localStorage.setItem(SELECTED_MODEL_KEY, String(next));
   }
+
   syncComposerModelLabel();
   renderModelMenu();
   refreshContextUsage();
 }
 
+/**
+ * Change the persisted Settings default model.
+ * Also switches the chat picker to that model when it is still valid.
+ */
+export function setDefaultModel(id, { syncSelection = true } = {}) {
+  const next = normalizeModelId(id);
+  state.defaultModelId = next;
+
+  window.onecode.models.setDefault(next).catch((error) => {
+    console.error(error);
+  });
+
+  if (syncSelection) {
+    setSelectedModel(next);
+  } else {
+    // Settings list may need a refresh without touching chat selection.
+    refreshContextUsage();
+  }
+}
+
 export function syncComposerModelLabel() {
+  const session = getSession();
+  const runModelId = session?.isSending ? session.activeRunModelId : null;
+  if (runModelId != null) {
+    const runModel = state.customModels.find((model) => model.id === runModelId);
+    if (runModel) {
+      const entry = formatModelPickerEntry(runModel);
+      modelLabel.textContent = entry.chipLabel;
+      setModelChipLogo(entry.provider);
+      modelChip?.classList.add("is-run-locked");
+      modelChip?.setAttribute("title", "Model locked for the active run");
+      syncComposerSetupBanner();
+      return;
+    }
+  }
+
+  modelChip?.classList.remove("is-run-locked");
+  modelChip?.removeAttribute("title");
+
   const selected = getSelectedModel();
   if (!selected) {
-    modelLabel.textContent = "No model";
-    state.selectedModelId = null;
+    modelLabel.textContent = state.customModels.length
+      ? "Pick a model"
+      : "No model";
+    setModelChipLogo(null);
     syncComposerSetupBanner();
     return;
   }
 
-  state.selectedModelId = selected.id;
-  modelLabel.textContent = selected.displayName;
+  const entry = formatModelPickerEntry(selected);
+  modelLabel.textContent = entry.chipLabel;
+  setModelChipLogo(entry.provider);
   syncComposerSetupBanner();
 }
 
@@ -772,27 +874,71 @@ export function renderMcpChatMenu() {
 
 export function renderModelMenu() {
   modelMenuList.innerHTML = "";
-  modelMenuEmpty.hidden = state.customModels.length > 0;
+  const models = Array.isArray(state.customModels) ? [...state.customModels] : [];
+  modelMenuEmpty.hidden = models.length > 0;
 
-  for (const model of state.customModels) {
+  // Stable order: provider name, then title.
+  models.sort((a, b) => {
+    const ea = formatModelPickerEntry(a);
+    const eb = formatModelPickerEntry(b);
+    const byProvider = ea.meta.localeCompare(eb.meta, undefined, { sensitivity: "base" });
+    if (byProvider !== 0) return byProvider;
+    return ea.title.localeCompare(eb.title, undefined, { sensitivity: "base" });
+  });
+
+  for (const model of models) {
+    const entry = formatModelPickerEntry(model);
+    const isSelected = model.id === state.selectedModelId;
+    const isDefault = model.id === state.defaultModelId;
+
     const option = document.createElement("button");
     option.type = "button";
     option.className = "model-option";
     option.role = "option";
-    option.setAttribute("aria-selected", String(model.id === state.selectedModelId));
-    if (model.id === state.selectedModelId) {
-      option.classList.add("selected");
-    }
+    option.setAttribute("aria-selected", String(isSelected));
+    if (isSelected) option.classList.add("selected");
+
+    const logo = document.createElement("span");
+    logo.className = "model-option-logo";
+    logo.setAttribute("aria-hidden", "true");
+    logo.innerHTML = entry.provider?.logoSvg || FALLBACK_MODEL_LOGO;
+
+    const body = document.createElement("div");
+    body.className = "model-option-body";
+
+    const titleRow = document.createElement("div");
+    titleRow.className = "model-option-title-row";
 
     const name = document.createElement("span");
     name.className = "model-option-name";
-    name.textContent = model.displayName;
+    name.textContent = entry.title;
+    titleRow.appendChild(name);
+
+    if (isDefault) {
+      const badge = document.createElement("span");
+      badge.className = "model-option-badge";
+      badge.textContent = "Default";
+      titleRow.appendChild(badge);
+    }
 
     const meta = document.createElement("span");
     meta.className = "model-option-meta";
-    meta.textContent = model.modelName;
+    // Show raw model id under the title when it differs and adds info.
+    const showId =
+      entry.title !== model.modelName &&
+      model.modelName &&
+      !entry.title.includes(model.modelName);
+    meta.textContent = showId ? `${entry.meta} · ${model.modelName}` : entry.meta;
 
-    option.append(name, meta);
+    body.append(titleRow, meta);
+
+    const check = document.createElement("span");
+    check.className = "model-option-check";
+    check.setAttribute("aria-hidden", "true");
+    check.innerHTML =
+      '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2.2 5.2 4.1 7l3.7-4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    option.append(logo, body, check);
     option.addEventListener("click", () => {
       setSelectedModel(model.id);
       closeModelMenu();

@@ -15,7 +15,10 @@ export const MCP_SERVERS_KEY = "onecode.mcp.servers";
 /** Shared mutable UI/app state (ESM-safe reassignment via object props). */
 export const state = {
   customModels: [],
+  /** Active model in the chat composer (session preference). */
   selectedModelId: Number(localStorage.getItem(SELECTED_MODEL_KEY)) || null,
+  /** Persisted Settings default — independent of the chat picker. */
+  defaultModelId: null,
   editingModelId: null,
   conversations: [],
   activeConversationId: null,

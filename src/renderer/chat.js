@@ -35,7 +35,7 @@ import {
   allThinkingText,
   isInTree,
 } from "./markdown.js";
-import { initCodeCopyDelegation } from "./syntax.js";
+import { initCodeCopyDelegation, copyTextToClipboard } from "./syntax.js";
 import {
   basenamePath,
   cancelOpenToolCards,
@@ -68,6 +68,7 @@ import {
   clearComposer,
   closeSkillsSlashMenu,
   getSelectedModel,
+  syncComposerModelLabel,
   getMcpChatPayload,
   getPendingAttachments,
   clearPendingAttachments,
@@ -76,10 +77,15 @@ import {
 import { refreshUsagePanel, isAllPermissionsEnabled } from "./settings.js";
 import { refreshContextUsage } from "./context-usage.js";
 
+/** Distance (px) from bottom that counts as "away" — unpin follow mode. */
 const SCROLL_BOTTOM_THRESHOLD = 96;
+/** Must reach this close to bottom to re-pin follow (hysteresis vs unpin). */
+const SCROLL_REPIN_THRESHOLD = 8;
 
 let scrollRaf = 0;
 let scrollForcePending = false;
+/** True while we set scrollTop ourselves — ignore those scroll events for pin state. */
+let programmaticScroll = false;
 let streamFlushRaf = 0;
 /** Guards against stale hydrate/mount after a faster conversation switch. */
 let chatLoadSeq = 0;
@@ -114,9 +120,14 @@ export function enterConversationMode(conversationId = state.activeConversationI
   if (conversationId === state.activeConversationId) syncShellMode(session);
 }
 
-export function isNearBottom(el = messagesEl) {
+export function distanceFromBottom(el = messagesEl) {
+  if (!el) return 0;
+  return el.scrollHeight - el.scrollTop - el.clientHeight;
+}
+
+export function isNearBottom(el = messagesEl, threshold = SCROLL_BOTTOM_THRESHOLD) {
   if (!el) return true;
-  return el.scrollHeight - el.scrollTop - el.clientHeight <= SCROLL_BOTTOM_THRESHOLD;
+  return distanceFromBottom(el) <= threshold;
 }
 
 /** Coalesce scroll-to-bottom to once per animation frame. */
@@ -131,8 +142,13 @@ export function scrollMessages({ force = false } = {}) {
     scrollForcePending = false;
     if (!messagesEl) return;
     if (!forceNow && !state.stickToBottom) return;
+    programmaticScroll = true;
     messagesEl.scrollTop = messagesEl.scrollHeight;
     state.stickToBottom = true;
+    // Drop the flag after the scroll event from this write has been dispatched.
+    requestAnimationFrame(() => {
+      programmaticScroll = false;
+    });
   });
 }
 
@@ -196,12 +212,27 @@ function queueThinkingPaint(turnRef) {
   scheduleStreamFlush();
 }
 
+/**
+ * Update stick-to-bottom with hysteresis so a small upward wheel/touch does not
+ * get immediately re-pinned by the trailing scroll event while still inside the
+ * near-bottom band — that race made streaming auto-scroll feel locked.
+ */
+function syncStickToBottomFromUserScroll() {
+  const distance = distanceFromBottom();
+  if (distance > SCROLL_BOTTOM_THRESHOLD) {
+    state.stickToBottom = false;
+  } else if (distance <= SCROLL_REPIN_THRESHOLD) {
+    state.stickToBottom = true;
+  }
+  // Band (REPIN, THRESHOLD]: keep current stickToBottom (hysteresis).
+}
+
 export function initScrollListeners() {
   if (!messagesEl) return;
   messagesEl.addEventListener(
     "scroll",
     () => {
-      state.stickToBottom = isNearBottom();
+      if (!programmaticScroll) syncStickToBottomFromUserScroll();
       collapseExpandedStickyUsers();
     },
     { passive: true }
@@ -211,7 +242,9 @@ export function initScrollListeners() {
     "wheel",
     (event) => {
       if (event.deltaY < 0) state.stickToBottom = false;
-      else if (isNearBottom()) state.stickToBottom = true;
+      else if (isNearBottom(messagesEl, SCROLL_REPIN_THRESHOLD)) {
+        state.stickToBottom = true;
+      }
     },
     { passive: true }
   );
@@ -229,7 +262,12 @@ export function initScrollListeners() {
     (event) => {
       const y = event.touches[0]?.clientY ?? state.touchStartY;
       if (y > state.touchStartY + 8) state.stickToBottom = false;
-      else if (y < state.touchStartY - 8 && isNearBottom()) state.stickToBottom = true;
+      else if (
+        y < state.touchStartY - 8 &&
+        isNearBottom(messagesEl, SCROLL_REPIN_THRESHOLD)
+      ) {
+        state.stickToBottom = true;
+      }
     },
     { passive: true }
   );
@@ -1027,6 +1065,11 @@ export function finishAgentTurn(status, conversationId = state.activeConversatio
   const finished = turn;
   session.activeAgentTurn = null;
   persistAgentTurn(conversationId, finished);
+
+  // Keep follow-mode users at the end after settle/layout; don't yank if they scrolled away.
+  if (conversationId === state.activeConversationId && state.stickToBottom) {
+    scrollMessages({ force: true });
+  }
 }
 
 export function showChatError(message, conversationId = state.activeConversationId) {
@@ -1055,7 +1098,7 @@ export function showChatError(message, conversationId = state.activeConversation
 export async function retryLastPrompt(conversationId = state.activeConversationId) {
   const session = getSession(conversationId);
   if (!session?.lastPrompt || session.isSending) return;
-  const { text, skills, attachments } = session.lastPrompt;
+  const { text, skills, attachments, modelId } = session.lastPrompt;
   if (state.activeConversationId !== conversationId) {
     await selectConversation(conversationId);
   }
@@ -1070,6 +1113,7 @@ export async function retryLastPrompt(conversationId = state.activeConversationI
     conversationId,
     skills,
     attachments,
+    modelId,
     skipComposerRead: true,
   });
 }
@@ -1080,6 +1124,7 @@ export async function submitPromptText(
     conversationId = state.activeConversationId,
     skills = null,
     attachments = null,
+    modelId = null,
     skipComposerRead = false,
   } = {}
 ) {
@@ -1113,7 +1158,11 @@ export async function submitPromptText(
   if (!messageText && !selectedSkills.length && !pending.length) return;
   if (!messageText && !pending.length) return;
 
-  const selected = getSelectedModel();
+  const overrideId = Number(modelId);
+  const selected =
+    Number.isInteger(overrideId) && overrideId > 0
+      ? state.customModels.find((model) => model.id === overrideId) || getSelectedModel()
+      : getSelectedModel();
   if (!selected) {
     addTurn("No model selected. Add a model in Settings, then pick it in the composer.", "agent", {
       error: true,
@@ -1137,6 +1186,7 @@ export async function submitPromptText(
     mcp: getMcpChatPayload(),
     attachments: pending,
   };
+  session.activeRunModelId = selected.id;
 
   addTurn(messageText || "(image)", "user", {
     conversationId: session.id,
@@ -1148,6 +1198,7 @@ export async function submitPromptText(
   closeSkillsSlashMenu();
   setSending(session.id, true);
   beginAgentTurn(session.id);
+  syncComposerModelLabel();
   scrollMessages({ force: true });
 
   try {
@@ -1178,11 +1229,15 @@ export async function submitPromptText(
   } catch (error) {
     showChatError(error?.message || "Failed to start chat.", session.id);
   } finally {
+    session.activeRunModelId = null;
     if (session.activeAgentTurn) {
       finishAgentTurn(session.isStopping ? "cancelled" : "done", session.id);
     }
     setSending(session.id, false);
-    if (state.activeConversationId === session.id) input.focus();
+    syncComposerModelLabel();
+    if (state.activeConversationId === session.id) {
+      input.focus({ preventScroll: true });
+    }
   }
 }
 
@@ -1778,9 +1833,188 @@ export async function submitPrompt(prefix = "") {
   await submitPromptText(text);
 }
 
+function getTurnCopyText(turnEl) {
+  if (!turnEl) return "";
+
+  if (turnEl.classList.contains("user")) {
+    const body = turnEl.querySelector(":scope > .turn-body");
+    if (body && body._raw != null) return String(body._raw);
+    return String(body?.innerText || body?.textContent || "").trim();
+  }
+
+  // Agent / error: prefer stored markdown source from response text blocks.
+  const parts = [];
+  const timeline = turnEl.querySelector(":scope > .turn-timeline");
+  if (timeline) {
+    for (const child of timeline.children) {
+      if (!child.classList.contains("timeline-text")) continue;
+      const raw = child._raw != null ? String(child._raw) : "";
+      if (raw.trim()) parts.push(raw);
+    }
+  }
+  if (parts.length) return parts.join("\n\n").trim();
+
+  const body = turnEl.querySelector(":scope > .turn-body");
+  if (body && body._raw != null) return String(body._raw);
+  return String(body?.innerText || body?.textContent || "").trim();
+}
+
+function findCopyableMessageTurn(target) {
+  if (!target?.closest) return null;
+  // Let native / specialized UI handle these.
+  if (
+    target.closest(
+      ".tool-card, .explore-group, .thinking-panel, .turn-actions, .status-indicator, .code-copy-btn, button, input, textarea, select, a"
+    )
+  ) {
+    return null;
+  }
+  return target.closest(".turn.user, .turn.agent");
+}
+
+let appContextMenuEl = null;
+let appContextMenuCloser = null;
+
+export function closeAppContextMenu() {
+  if (appContextMenuCloser) {
+    appContextMenuCloser();
+    appContextMenuCloser = null;
+  }
+  if (appContextMenuEl) {
+    appContextMenuEl.hidden = true;
+    appContextMenuEl.replaceChildren();
+  }
+}
+
+function ensureAppContextMenu() {
+  if (appContextMenuEl) return appContextMenuEl;
+
+  const menu = document.createElement("div");
+  menu.className = "msg-context-menu";
+  menu.hidden = true;
+  menu.setAttribute("role", "menu");
+  document.body.appendChild(menu);
+  appContextMenuEl = menu;
+  return menu;
+}
+
+/**
+ * @param {number} clientX
+ * @param {number} clientY
+ * @param {Array<{
+ *   label: string,
+ *   disabled?: boolean,
+ *   keepOpen?: boolean,
+ *   run?: (btn: HTMLButtonElement) => void | Promise<void>,
+ * }>} items
+ */
+export function openAppContextMenu(clientX, clientY, items) {
+  const menu = ensureAppContextMenu();
+  closeAppContextMenu();
+
+  const list = Array.isArray(items) ? items.filter(Boolean) : [];
+  if (!list.length) return;
+
+  for (const spec of list) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "msg-context-menu-item";
+    btn.setAttribute("role", "menuitem");
+    btn.textContent = spec.label;
+    if (spec.disabled) {
+      btn.disabled = true;
+      btn.classList.add("is-disabled");
+    }
+    btn.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (btn.disabled) return;
+      try {
+        await spec.run?.(btn);
+      } finally {
+        if (!spec.keepOpen) closeAppContextMenu();
+      }
+    });
+    menu.appendChild(btn);
+  }
+
+  menu.hidden = false;
+
+  const pad = 8;
+  const rect = menu.getBoundingClientRect();
+  let left = clientX;
+  let top = clientY;
+  if (left + rect.width > window.innerWidth - pad) {
+    left = Math.max(pad, window.innerWidth - rect.width - pad);
+  }
+  if (top + rect.height > window.innerHeight - pad) {
+    top = Math.max(pad, window.innerHeight - rect.height - pad);
+  }
+  menu.style.left = `${Math.max(pad, left)}px`;
+  menu.style.top = `${Math.max(pad, top)}px`;
+
+  const onPointerDown = (event) => {
+    if (menu.contains(event.target)) return;
+    closeAppContextMenu();
+  };
+  const onKeyDown = (event) => {
+    if (event.key === "Escape") closeAppContextMenu();
+  };
+  const onScroll = () => closeAppContextMenu();
+  const onBlur = () => closeAppContextMenu();
+
+  const openToken = {};
+  menu._openToken = openToken;
+
+  window.setTimeout(() => {
+    if (menu._openToken !== openToken || menu.hidden) return;
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("keydown", onKeyDown, true);
+    window.addEventListener("blur", onBlur);
+    messagesEl?.addEventListener("scroll", onScroll, { passive: true });
+  }, 0);
+
+  appContextMenuCloser = () => {
+    document.removeEventListener("pointerdown", onPointerDown, true);
+    document.removeEventListener("keydown", onKeyDown, true);
+    window.removeEventListener("blur", onBlur);
+    messagesEl?.removeEventListener("scroll", onScroll);
+  };
+}
+
+function initMessageContextMenu() {
+  if (!messagesEl || messagesEl.dataset.msgContextBound === "1") return;
+  messagesEl.dataset.msgContextBound = "1";
+
+  messagesEl.addEventListener("contextmenu", (event) => {
+    const turn = findCopyableMessageTurn(event.target);
+    if (!turn || !messagesEl.contains(turn)) return;
+
+    const text = getTurnCopyText(turn);
+    if (!text) return;
+
+    event.preventDefault();
+    openAppContextMenu(event.clientX, event.clientY, [
+      {
+        label: "Copy message",
+        keepOpen: true,
+        run: async (btn) => {
+          const ok = await copyTextToClipboard(text);
+          if (ok) {
+            btn.textContent = "Copied";
+            btn.classList.add("is-copied");
+            window.setTimeout(() => closeAppContextMenu(), 700);
+          }
+        },
+      },
+    ]);
+  });
+}
+
 export function initChatEvents() {
   registerRenderChatList(renderChatList, patchChatListStatus);
   initCodeCopyDelegation(messagesEl || document);
+  initMessageContextMenu();
 
   window.onecode.chat.onEvent((event) => {
       if (!event || typeof event !== "object") return;
@@ -1834,7 +2068,12 @@ export function initChatEvents() {
           break;
         case "error":
           showChatError(event.message || "Agent error.", conversationId);
+          {
+            const errSession = getSession(conversationId);
+            if (errSession) errSession.activeRunModelId = null;
+          }
           setSending(conversationId, false);
+          syncComposerModelLabel();
           break;
         case "cancelled": {
           const session = getSession(conversationId);

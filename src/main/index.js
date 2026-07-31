@@ -14,6 +14,8 @@ const {
   createModel,
   updateModel,
   deleteModel,
+  getDefaultModelId,
+  setDefaultModelId,
   getTinyFishSettings,
   saveTinyFishSettings,
   getOnboardingSettings,
@@ -44,6 +46,8 @@ const {
   exportAgentState,
   invalidateAllCachedAgents,
   polishPrompt,
+  verifyModelConfig,
+  listRemoteModels,
   runChatTurn,
   getContextUsage,
   resolveToolApproval,
@@ -127,6 +131,21 @@ function createWindow() {
   });
 
   win.loadFile(path.join(__dirname, "../renderer/index.html"));
+
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:\/\//i.test(url)) {
+      shell.openExternal(url);
+    }
+    return { action: "deny" };
+  });
+
+  win.webContents.on("will-navigate", (event, url) => {
+    if (url.startsWith("file://")) return;
+    event.preventDefault();
+    if (/^https?:\/\//i.test(url)) {
+      shell.openExternal(url);
+    }
+  });
 }
 
 function validateModelPayload(payload) {
@@ -197,6 +216,14 @@ app.whenReady().then(() => {
   ipcMain.handle("app:checkForUpdates", async () => checkForUpdates());
   ipcMain.handle("app:installUpdate", async () => installUpdate());
   ipcMain.handle("app:getUpdateState", () => getUpdateState());
+  ipcMain.handle("app:openExternal", async (_event, url) => {
+    const target = String(url || "").trim();
+    if (!/^https?:\/\//i.test(target)) {
+      throw new Error("Only http(s) URLs can be opened.");
+    }
+    await shell.openExternal(target);
+    return { ok: true };
+  });
 
   onMcpStatus((status) => {
     for (const win of BrowserWindow.getAllWindows()) {
@@ -207,6 +234,36 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle("models:list", () => listModels());
+
+  ipcMain.handle("models:verify", async (_event, payload) => {
+    const modelName = String(payload?.modelName || "").trim();
+    const baseUrl = String(payload?.baseUrl || "").trim();
+    const apiKey = String(payload?.apiKey || "").trim();
+    if (!modelName || !baseUrl || !apiKey) {
+      throw new Error("Model name, base URL, and API key are required to verify.");
+    }
+    return verifyModelConfig({ modelName, baseUrl, apiKey });
+  });
+
+  ipcMain.handle("models:listRemote", async (_event, payload) => {
+    const baseUrl = String(payload?.baseUrl || "").trim();
+    const apiKey = String(payload?.apiKey || "").trim();
+    const modelsPath = payload?.modelsPath
+      ? String(payload.modelsPath).trim()
+      : "/models";
+    if (!baseUrl) {
+      throw new Error("Base URL is required to list models.");
+    }
+    return listRemoteModels({
+      baseUrl,
+      apiKey,
+      modelsPath,
+      headers:
+        payload?.headers && typeof payload.headers === "object"
+          ? payload.headers
+          : undefined,
+    });
+  });
 
   ipcMain.handle("models:create", (_event, payload) => {
     return createModel(validateModelPayload(payload));
@@ -226,6 +283,14 @@ app.whenReady().then(() => {
       throw new Error("Invalid model id.");
     }
     return deleteModel(numericId);
+  });
+
+  ipcMain.handle("models:getDefault", () => {
+    return { id: getDefaultModelId() };
+  });
+
+  ipcMain.handle("models:setDefault", (_event, id) => {
+    return setDefaultModelId(id);
   });
 
   ipcMain.handle("settings:tinyfish:get", () => getTinyFishSettings());

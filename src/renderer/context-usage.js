@@ -24,9 +24,10 @@ function getDraftText() {
 
 function getSelectedModelId() {
   if (!state.customModels.length) return null;
-  const selected =
-    state.customModels.find((model) => model.id === state.selectedModelId) ||
-    state.customModels[0];
+  if (state.selectedModelId == null) return null;
+  const selected = state.customModels.find(
+    (model) => model.id === state.selectedModelId
+  );
   return selected?.id || null;
 }
 

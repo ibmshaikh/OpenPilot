@@ -10,10 +10,24 @@ import {
   modelForm,
   modelFormTitle,
   modelFormError,
+  modelFormSaveBtn,
   modelIdInput,
+  modelProviderIdInput,
+  modelProviderTrigger,
+  modelProviderLogo,
+  modelProviderTriggerLabel,
+  modelProviderTriggerDesc,
+  modelProviderMenu,
+  modelProviderKeyLink,
+  modelNameSelect,
   modelNameInput,
+  modelFetchStatus,
+  modelRefreshBtn,
   modelBaseUrlInput,
   modelApiKeyInput,
+  modelApiKeyToggle,
+  modelVerifyBtn,
+  modelVerifyStatus,
   modelDisplayNameInput,
   skillListEl,
   emptySkillsEl,
@@ -64,7 +78,7 @@ import {
   aboutVersionEl,
   aboutUpdateStatusEl,
 } from "./dom.js";
-import { state, getSession, SELECTED_MODEL_KEY } from "./state.js";
+import { state, getSession } from "./state.js";
 import { escapeHtml } from "./markdown.js";
 import { refreshContextUsage } from "./context-usage.js";
 import {
@@ -76,34 +90,83 @@ import {
   syncComposerModelLabel,
   renderModelMenu,
   renderMcpChatControls,
+  setSelectedModel,
+  setDefaultModel,
 } from "./composer.js";
 import { createListSkeleton, setSkeleton } from "./skeleton.js";
+import {
+  LLM_PROVIDERS,
+  getProviderById,
+  matchProvider,
+  defaultDisplayName,
+} from "./llm-providers.js";
 
 export { checkForAppUpdates };
+
+const CUSTOM_MODEL_OPTION = "__custom__";
+
+let modelVerified = false;
+let displayNameTouched = false;
+let providerMenuBuilt = false;
+let verifyingModel = false;
+/** @type {Array<{ id: string, label: string }>} */
+let remoteModels = [];
+let modelsFetchToken = 0;
+let modelsFetchTimer = null;
+let preferredModelId = "";
 
 export function renderModelList() {
   modelListEl.innerHTML = "";
   emptyModelsEl.hidden = state.customModels.length > 0;
 
   for (const model of state.customModels) {
+    const isDefault = model.id === state.defaultModelId;
     const card = document.createElement("article");
-    card.className = "model-card";
+    card.className = `model-card${isDefault ? " is-default" : ""}`;
 
     const info = document.createElement("div");
     info.className = "model-card-info";
+
+    const titleRow = document.createElement("div");
+    titleRow.className = "model-card-title-row";
 
     const title = document.createElement("div");
     title.className = "model-card-title";
     title.textContent = model.displayName;
 
+    titleRow.append(title);
+    if (isDefault) {
+      const badge = document.createElement("span");
+      badge.className = "model-default-badge";
+      badge.textContent = "Default";
+      titleRow.append(badge);
+    }
+
     const meta = document.createElement("div");
     meta.className = "model-card-meta";
     meta.textContent = `${model.modelName} · ${model.baseUrl} · ${maskKey(model.apiKey)}`;
 
-    info.append(title, meta);
+    info.append(titleRow, meta);
 
     const actions = document.createElement("div");
     actions.className = "model-card-actions";
+
+    if (!isDefault) {
+      const defaultBtn = document.createElement("button");
+      defaultBtn.type = "button";
+      defaultBtn.className = "btn secondary";
+      defaultBtn.textContent = "Set default";
+      defaultBtn.addEventListener("click", () => {
+        setDefaultModel(model.id, { syncSelection: true });
+        renderModelList();
+        settingsStatus.hidden = false;
+        settingsStatus.textContent = `"${model.displayName}" is now the default.`;
+        window.setTimeout(() => {
+          settingsStatus.hidden = true;
+        }, 1400);
+      });
+      actions.append(defaultBtn);
+    }
 
     const editBtn = document.createElement("button");
     editBtn.type = "button";
@@ -111,7 +174,22 @@ export function renderModelList() {
     editBtn.textContent = "Edit";
     editBtn.addEventListener("click", () => openModelForm(model));
 
-    actions.append(editBtn);
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "btn danger";
+    deleteBtn.textContent = "Delete";
+    deleteBtn.addEventListener("click", () => {
+      deleteSavedModel(model).catch((error) => {
+        console.error(error);
+        settingsStatus.hidden = false;
+        settingsStatus.textContent = error?.message || "Failed to delete model.";
+        window.setTimeout(() => {
+          settingsStatus.hidden = true;
+        }, 2000);
+      });
+    });
+
+    actions.append(editBtn, deleteBtn);
     card.append(info, actions);
     modelListEl.appendChild(card);
   }
@@ -120,22 +198,66 @@ export function renderModelList() {
   renderModelMenu();
 }
 
+export async function deleteSavedModel(model) {
+  if (!model?.id) return;
+  const label = model.displayName || model.modelName || "this model";
+  const ok = window.confirm(`Delete "${label}"? This cannot be undone.`);
+  if (!ok) return;
+
+  const wasDefault = state.defaultModelId === model.id;
+  const wasSelected = state.selectedModelId === model.id;
+  await window.onecode.models.delete(model.id);
+
+  if (wasDefault) {
+    state.defaultModelId = null;
+  }
+  if (wasSelected) {
+    setSelectedModel(null);
+  }
+
+  await refreshModels();
+  settingsStatus.hidden = false;
+  settingsStatus.textContent = "Model deleted.";
+  window.setTimeout(() => {
+    settingsStatus.hidden = true;
+  }, 1400);
+}
+
 export async function refreshModels() {
   if (modelListEl && !modelListEl.childElementCount) {
     if (emptyModelsEl) emptyModelsEl.hidden = true;
     setSkeleton(modelListEl, createListSkeleton(3, "card"));
   }
 
-  state.customModels = await window.onecode.models.list();
+  const [models, defaultResult] = await Promise.all([
+    window.onecode.models.list(),
+    window.onecode.models.getDefault().catch(() => ({ id: null })),
+  ]);
 
-  if (state.customModels.length && !state.customModels.some((model) => model.id === state.selectedModelId)) {
-    state.selectedModelId = state.customModels[0].id;
-    localStorage.setItem(SELECTED_MODEL_KEY, String(state.selectedModelId));
+  state.customModels = models;
+
+  const persistedDefault = Number(defaultResult?.id) || null;
+  const isValid = (id) =>
+    id != null && state.customModels.some((model) => model.id === id);
+
+  let nextDefault = isValid(persistedDefault) ? persistedDefault : null;
+  if (!nextDefault && state.customModels.length) {
+    nextDefault = state.customModels[0].id;
+  }
+  state.defaultModelId = nextDefault;
+
+  if (nextDefault !== persistedDefault) {
+    window.onecode.models.setDefault(nextDefault).catch((error) => {
+      console.error(error);
+    });
   }
 
-  if (!state.customModels.length) {
-    state.selectedModelId = null;
-    localStorage.removeItem(SELECTED_MODEL_KEY);
+  // Chat selection is independent — only reset it when invalid.
+  if (!isValid(state.selectedModelId)) {
+    setSelectedModel(nextDefault);
+  } else {
+    syncComposerModelLabel();
+    renderModelMenu();
   }
 
   renderModelList();
@@ -653,17 +775,420 @@ export function showModelFormError(message) {
   modelFormError.textContent = message;
 }
 
+function setVerifyStatus(message, { ok = false, error = false } = {}) {
+  if (!modelVerifyStatus) return;
+  if (!message) {
+    modelVerifyStatus.hidden = true;
+    modelVerifyStatus.textContent = "";
+    modelVerifyStatus.classList.remove("is-ok", "is-error");
+    return;
+  }
+  modelVerifyStatus.hidden = false;
+  modelVerifyStatus.textContent = message;
+  modelVerifyStatus.classList.toggle("is-ok", ok);
+  modelVerifyStatus.classList.toggle("is-error", error);
+}
+
+function setModelVerified(next) {
+  modelVerified = Boolean(next);
+  if (modelFormSaveBtn) {
+    modelFormSaveBtn.disabled = !modelVerified;
+  }
+}
+
+function invalidateModelVerification(message = "") {
+  setModelVerified(false);
+  if (message) {
+    setVerifyStatus(message, { error: false });
+  } else {
+    setVerifyStatus("");
+  }
+}
+
+function closeProviderMenu() {
+  if (!modelProviderMenu || !modelProviderTrigger) return;
+  modelProviderMenu.hidden = true;
+  modelProviderTrigger.setAttribute("aria-expanded", "false");
+}
+
+function openProviderMenu() {
+  if (!modelProviderMenu || !modelProviderTrigger) return;
+  ensureProviderMenu();
+  modelProviderMenu.hidden = false;
+  modelProviderTrigger.setAttribute("aria-expanded", "true");
+}
+
+function ensureProviderMenu() {
+  if (!modelProviderMenu || providerMenuBuilt) return;
+  modelProviderMenu.innerHTML = "";
+
+  for (const provider of LLM_PROVIDERS) {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "provider-option";
+    option.role = "option";
+    option.dataset.providerId = provider.id;
+    option.setAttribute("aria-selected", "false");
+
+    const logo = document.createElement("span");
+    logo.className = "provider-picker-logo";
+    logo.innerHTML = provider.logoSvg;
+    logo.setAttribute("aria-hidden", "true");
+
+    const text = document.createElement("span");
+    text.className = "provider-picker-text";
+
+    const name = document.createElement("span");
+    name.className = "provider-picker-name";
+    name.textContent = provider.name;
+
+    const desc = document.createElement("span");
+    desc.className = "provider-picker-desc";
+    desc.textContent = provider.description || "";
+
+    text.append(name, desc);
+    option.append(logo, text);
+    option.addEventListener("click", () => {
+      applyProvider(provider.id, { autofill: true });
+      closeProviderMenu();
+    });
+    modelProviderMenu.appendChild(option);
+  }
+
+  providerMenuBuilt = true;
+}
+
+function syncProviderTrigger(provider) {
+  if (!modelProviderTriggerLabel) return;
+
+  if (!provider) {
+    modelProviderIdInput.value = "";
+    modelProviderTriggerLabel.textContent = "Select a provider";
+    if (modelProviderTriggerDesc) modelProviderTriggerDesc.textContent = "";
+    if (modelProviderLogo) modelProviderLogo.innerHTML = "";
+    if (modelProviderKeyLink) {
+      modelProviderKeyLink.hidden = true;
+      modelProviderKeyLink.removeAttribute("href");
+    }
+    return;
+  }
+
+  modelProviderIdInput.value = provider.id;
+  modelProviderTriggerLabel.textContent = provider.name;
+  if (modelProviderTriggerDesc) {
+    modelProviderTriggerDesc.textContent = provider.description || "";
+  }
+  if (modelProviderLogo) {
+    modelProviderLogo.innerHTML = provider.logoSvg;
+  }
+
+  if (modelProviderKeyLink) {
+    if (provider.apiKeyUrl) {
+      modelProviderKeyLink.hidden = false;
+      modelProviderKeyLink.href = provider.apiKeyUrl;
+    } else {
+      modelProviderKeyLink.hidden = true;
+      modelProviderKeyLink.removeAttribute("href");
+    }
+  }
+
+  if (modelProviderMenu) {
+    for (const option of modelProviderMenu.querySelectorAll(".provider-option")) {
+      option.setAttribute(
+        "aria-selected",
+        option.dataset.providerId === provider.id ? "true" : "false"
+      );
+    }
+  }
+}
+
+function setModelsFetchStatus(message, { ok = false, error = false } = {}) {
+  if (!modelFetchStatus) return;
+  if (!message) {
+    modelFetchStatus.hidden = true;
+    modelFetchStatus.textContent = "";
+    modelFetchStatus.classList.remove("is-ok", "is-error");
+    return;
+  }
+  modelFetchStatus.hidden = false;
+  modelFetchStatus.textContent = message;
+  modelFetchStatus.classList.toggle("is-ok", ok);
+  modelFetchStatus.classList.toggle("is-error", error);
+}
+
+function resolveApiKeyForRequest() {
+  const raw = modelApiKeyInput?.value.trim() || "";
+  if (raw) return raw;
+  if (modelProviderIdInput?.value === "ollama") return "ollama";
+  return "";
+}
+
+function providerNeedsApiKey(provider) {
+  return provider?.requiresApiKey !== false;
+}
+
+/**
+ * Rebuild model name select/input from `remoteModels`.
+ * @param {string} [selectedModelId]
+ */
+function syncModelNameControls(selectedModelId = "") {
+  if (!modelNameSelect || !modelNameInput) return;
+
+  const selected = String(selectedModelId || preferredModelId || "").trim();
+  const known = remoteModels.some((m) => m.id === selected);
+
+  modelNameSelect.innerHTML = "";
+
+  if (!remoteModels.length) {
+    modelNameSelect.hidden = true;
+    modelNameInput.hidden = false;
+    modelNameInput.required = true;
+    if (selected) modelNameInput.value = selected;
+    if (modelRefreshBtn) {
+      modelRefreshBtn.hidden = !modelBaseUrlInput?.value.trim();
+    }
+    return;
+  }
+
+  for (const model of remoteModels) {
+    const option = document.createElement("option");
+    option.value = model.id;
+    option.textContent = model.label || model.id;
+    modelNameSelect.appendChild(option);
+  }
+
+  const customOption = document.createElement("option");
+  customOption.value = CUSTOM_MODEL_OPTION;
+  customOption.textContent = "Custom model ID…";
+  modelNameSelect.appendChild(customOption);
+
+  modelNameSelect.hidden = false;
+  if (modelRefreshBtn) modelRefreshBtn.hidden = false;
+
+  if (selected && known) {
+    modelNameSelect.value = selected;
+    modelNameInput.hidden = true;
+    modelNameInput.required = false;
+    modelNameInput.value = selected;
+  } else if (selected) {
+    modelNameSelect.value = CUSTOM_MODEL_OPTION;
+    modelNameInput.hidden = false;
+    modelNameInput.required = true;
+    modelNameInput.value = selected;
+  } else {
+    modelNameSelect.value = remoteModels[0].id;
+    modelNameInput.hidden = true;
+    modelNameInput.required = false;
+    modelNameInput.value = remoteModels[0].id;
+  }
+}
+
+function resetRemoteModels(selectedModelId = "") {
+  remoteModels = [];
+  preferredModelId = String(selectedModelId || "").trim();
+  syncModelNameControls(preferredModelId);
+  setModelsFetchStatus("");
+}
+
+/**
+ * Fetch models from the provider's GET /models API.
+ * @param {{ selectedModelId?: string, silent?: boolean }} [opts]
+ */
+async function fetchRemoteModels(opts = {}) {
+  const provider = getProviderById(modelProviderIdInput?.value);
+  const baseUrl = modelBaseUrlInput?.value.trim() || "";
+  const apiKey = resolveApiKeyForRequest();
+  const selectedModelId = String(
+    opts.selectedModelId ?? preferredModelId ?? getSelectedModelName()
+  ).trim();
+
+  if (selectedModelId) preferredModelId = selectedModelId;
+
+  if (!baseUrl) {
+    resetRemoteModels(selectedModelId);
+    setModelsFetchStatus("Enter a base URL to load models.");
+    if (modelRefreshBtn) modelRefreshBtn.hidden = true;
+    return;
+  }
+
+  if (providerNeedsApiKey(provider) && !apiKey) {
+    resetRemoteModels(selectedModelId);
+    setModelsFetchStatus("Enter an API key to load models from this provider.");
+    if (modelRefreshBtn) modelRefreshBtn.hidden = false;
+    modelNameInput.placeholder = "Enter API key to load models";
+    return;
+  }
+
+  const token = ++modelsFetchToken;
+  if (modelRefreshBtn) modelRefreshBtn.hidden = false;
+  setModelsFetchStatus("Loading models from provider…");
+  modelNameSelect.hidden = true;
+  modelNameInput.hidden = false;
+  modelNameInput.required = true;
+  modelNameInput.placeholder = "Loading models…";
+  if (selectedModelId) modelNameInput.value = selectedModelId;
+
+  try {
+    const result = await window.onecode.models.listRemote({
+      baseUrl,
+      apiKey: apiKey || "ollama",
+      modelsPath: provider?.modelsPath || "/models",
+      headers: provider?.modelsHeaders || undefined,
+    });
+
+    if (token !== modelsFetchToken) return;
+
+    remoteModels = Array.isArray(result?.models) ? result.models : [];
+    syncModelNameControls(preferredModelId);
+    const providerLabel = provider?.name || "provider";
+    setModelsFetchStatus(
+      `Loaded ${remoteModels.length} model${remoteModels.length === 1 ? "" : "s"} from ${providerLabel}.`,
+      { ok: true }
+    );
+
+    const currentProvider = getProviderById(modelProviderIdInput?.value);
+    maybeAutofillDisplayName(currentProvider);
+  } catch (error) {
+    if (token !== modelsFetchToken) return;
+    remoteModels = [];
+    syncModelNameControls(preferredModelId);
+    modelNameInput.hidden = false;
+    modelNameInput.required = true;
+    modelNameInput.placeholder = "e.g. gpt-4o-mini";
+    if (preferredModelId) modelNameInput.value = preferredModelId;
+    setModelsFetchStatus(
+      error?.message
+        ? `${error.message} You can still type a model ID manually.`
+        : "Could not load models. Type a model ID manually.",
+      { error: true }
+    );
+  }
+}
+
+function scheduleFetchRemoteModels(delayMs = 450) {
+  if (modelsFetchTimer) {
+    window.clearTimeout(modelsFetchTimer);
+    modelsFetchTimer = null;
+  }
+  modelsFetchTimer = window.setTimeout(() => {
+    modelsFetchTimer = null;
+    fetchRemoteModels().catch((error) => {
+      setModelsFetchStatus(error?.message || "Could not load models.", {
+        error: true,
+      });
+    });
+  }, delayMs);
+}
+
+function getSelectedModelName() {
+  if (modelNameSelect && !modelNameSelect.hidden) {
+    if (modelNameSelect.value === CUSTOM_MODEL_OPTION || !modelNameInput.hidden) {
+      return modelNameInput.value.trim();
+    }
+    return modelNameSelect.value.trim();
+  }
+  return modelNameInput.value.trim();
+}
+
+function maybeAutofillDisplayName(provider) {
+  if (displayNameTouched) return;
+  const modelId = getSelectedModelName();
+  modelDisplayNameInput.value = defaultDisplayName(provider, modelId);
+}
+
+/**
+ * @param {string} providerId
+ * @param {{ autofill?: boolean, modelName?: string, baseUrl?: string, preserveDisplayName?: boolean, fetchModels?: boolean }} [opts]
+ */
+function applyProvider(providerId, opts = {}) {
+  const provider = getProviderById(providerId) || getProviderById("custom");
+  const autofill = opts.autofill !== false;
+  const selectedModelId = String(opts.modelName || "").trim();
+  preferredModelId = selectedModelId;
+
+  syncProviderTrigger(provider);
+
+  if (autofill) {
+    if (opts.baseUrl != null) {
+      modelBaseUrlInput.value = opts.baseUrl;
+    } else if (provider.baseUrl) {
+      modelBaseUrlInput.value = provider.baseUrl;
+    } else if (provider.id === "custom" && !opts.modelName) {
+      // Keep whatever the user typed when switching to custom mid-edit.
+    } else if (!opts.modelName) {
+      modelBaseUrlInput.value = "";
+    }
+  }
+
+  if (modelApiKeyInput) {
+    const optionalKey = provider.requiresApiKey === false;
+    modelApiKeyInput.required = !optionalKey;
+    if (optionalKey && !modelApiKeyInput.value.trim()) {
+      modelApiKeyInput.placeholder = "ollama (or any value)";
+    } else {
+      modelApiKeyInput.placeholder = "sk-...";
+    }
+  }
+
+  resetRemoteModels(selectedModelId);
+
+  if (!opts.preserveDisplayName) {
+    maybeAutofillDisplayName(provider);
+  }
+
+  invalidateModelVerification();
+
+  if (opts.fetchModels !== false) {
+    scheduleFetchRemoteModels(provider.requiresApiKey === false ? 0 : 150);
+  }
+}
+
 export function openModelForm(model = null) {
   clearModelFormError();
+  setVerifyStatus("");
+  setModelsFetchStatus("");
+  setModelVerified(false);
+  displayNameTouched = false;
+  remoteModels = [];
+  preferredModelId = "";
+  modelsFetchToken += 1;
+  if (modelsFetchTimer) {
+    window.clearTimeout(modelsFetchTimer);
+    modelsFetchTimer = null;
+  }
+  closeProviderMenu();
+  ensureProviderMenu();
+
   state.editingModelId = model?.id ?? null;
   modelIdInput.value = model?.id ? String(model.id) : "";
-  modelFormTitle.textContent = model ? "Edit model" : "Add new model";
-  modelNameInput.value = model?.modelName || "";
-  modelBaseUrlInput.value = model?.baseUrl || "";
-  modelApiKeyInput.value = model?.apiKey || "";
-  modelDisplayNameInput.value = model?.displayName || "";
+  modelFormTitle.textContent = model ? "Edit model configuration" : "Add new model";
+
+  if (model) {
+    const provider = matchProvider(model);
+    displayNameTouched = true;
+    preferredModelId = model.modelName || "";
+    applyProvider(provider.id, {
+      autofill: true,
+      modelName: model.modelName || "",
+      baseUrl: model.baseUrl || "",
+      preserveDisplayName: true,
+      fetchModels: false,
+    });
+    modelApiKeyInput.value = model.apiKey || "";
+    modelDisplayNameInput.value = model.displayName || "";
+    scheduleFetchRemoteModels(0);
+  } else {
+    modelForm.reset();
+    modelIdInput.value = "";
+    applyProvider("openai", { autofill: true });
+    modelApiKeyInput.value = "";
+  }
+
+  if (modelApiKeyInput) modelApiKeyInput.type = "password";
+  if (modelApiKeyToggle) modelApiKeyToggle.setAttribute("aria-label", "Show API key");
+
   modelFormModal.hidden = false;
-  modelNameInput.focus();
+  modelProviderTrigger?.focus();
 }
 
 export function closeModelForm() {
@@ -671,17 +1196,81 @@ export function closeModelForm() {
   state.editingModelId = null;
   modelForm.reset();
   modelIdInput.value = "";
+  closeProviderMenu();
   clearModelFormError();
+  setVerifyStatus("");
+  setModelsFetchStatus("");
+  setModelVerified(false);
+  displayNameTouched = false;
+  verifyingModel = false;
+  remoteModels = [];
+  preferredModelId = "";
+  modelsFetchToken += 1;
+  if (modelsFetchTimer) {
+    window.clearTimeout(modelsFetchTimer);
+    modelsFetchTimer = null;
+  }
+  if (modelVerifyBtn) {
+    modelVerifyBtn.classList.remove("is-loading");
+    modelVerifyBtn.disabled = false;
+  }
+  if (modelRefreshBtn) modelRefreshBtn.hidden = true;
+}
+
+export async function verifyModel() {
+  clearModelFormError();
+  if (verifyingModel) return;
+
+  const payload = {
+    modelName: getSelectedModelName(),
+    baseUrl: modelBaseUrlInput.value.trim(),
+    apiKey: resolveApiKeyForRequest(),
+  };
+
+  if (!payload.modelName || !payload.baseUrl || !payload.apiKey) {
+    setModelVerified(false);
+    setVerifyStatus("Enter model name, base URL, and API key before verifying.", {
+      error: true,
+    });
+    return;
+  }
+
+  verifyingModel = true;
+  if (modelVerifyBtn) {
+    modelVerifyBtn.classList.add("is-loading");
+    modelVerifyBtn.disabled = true;
+  }
+  setVerifyStatus("Verifying API key…");
+
+  try {
+    const result = await window.onecode.models.verify(payload);
+    setModelVerified(true);
+    setVerifyStatus(result?.message || "API key and model verified.", { ok: true });
+  } catch (error) {
+    setModelVerified(false);
+    setVerifyStatus(error?.message || "Verification failed.", { error: true });
+  } finally {
+    verifyingModel = false;
+    if (modelVerifyBtn) {
+      modelVerifyBtn.classList.remove("is-loading");
+      modelVerifyBtn.disabled = false;
+    }
+  }
 }
 
 export async function saveModel(event) {
   event.preventDefault();
   clearModelFormError();
 
+  if (!modelVerified) {
+    showModelFormError("Verify the API key before saving this model.");
+    return;
+  }
+
   const payload = {
-    modelName: modelNameInput.value.trim(),
+    modelName: getSelectedModelName(),
     baseUrl: modelBaseUrlInput.value.trim(),
-    apiKey: modelApiKeyInput.value.trim(),
+    apiKey: resolveApiKeyForRequest(),
     displayName: modelDisplayNameInput.value.trim(),
   };
 
@@ -690,9 +1279,14 @@ export async function saveModel(event) {
       await window.onecode.models.update(state.editingModelId, payload);
     } else {
       const created = await window.onecode.models.create(payload);
-      if (created?.id) {
-        state.selectedModelId = created.id;
-        localStorage.setItem(SELECTED_MODEL_KEY, String(created.id));
+      // Only become the default when none is set yet (first model).
+      const hasDefault = state.customModels.some(
+        (model) => model.id === state.defaultModelId
+      );
+      if (!hasDefault && created?.id) {
+        setDefaultModel(created.id, { syncSelection: true });
+      } else if (created?.id && state.selectedModelId == null) {
+        setSelectedModel(created.id);
       }
     }
 
@@ -706,6 +1300,110 @@ export async function saveModel(event) {
   } catch (error) {
     showModelFormError(error?.message || "Failed to save model.");
   }
+}
+
+export function initModelFormControls() {
+  ensureProviderMenu();
+
+  modelProviderKeyLink?.addEventListener("click", (event) => {
+    event.preventDefault();
+    const url = modelProviderKeyLink.getAttribute("href");
+    if (!url || url === "#") return;
+    window.onecode.app.openExternal(url).catch((error) => {
+      console.error(error);
+    });
+  });
+
+  modelProviderTrigger?.addEventListener("click", (event) => {
+    event.preventDefault();
+    if (modelProviderMenu?.hidden) openProviderMenu();
+    else closeProviderMenu();
+  });
+
+  modelProviderTrigger?.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openProviderMenu();
+    } else if (event.key === "Escape") {
+      closeProviderMenu();
+    }
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!modelProviderMenu || modelProviderMenu.hidden) return;
+    const picker = modelProviderTrigger?.closest(".provider-picker");
+    if (picker && picker.contains(event.target)) return;
+    closeProviderMenu();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    if (!modelProviderMenu || modelProviderMenu.hidden) return;
+    event.stopImmediatePropagation();
+    closeProviderMenu();
+  });
+
+  modelNameSelect?.addEventListener("change", () => {
+    const provider = getProviderById(modelProviderIdInput.value);
+    if (modelNameSelect.value === CUSTOM_MODEL_OPTION) {
+      modelNameInput.hidden = false;
+      modelNameInput.required = true;
+      modelNameInput.value = "";
+      preferredModelId = "";
+      modelNameInput.focus();
+    } else {
+      modelNameInput.hidden = true;
+      modelNameInput.required = false;
+      modelNameInput.value = modelNameSelect.value;
+      preferredModelId = modelNameSelect.value;
+      maybeAutofillDisplayName(provider);
+    }
+    invalidateModelVerification();
+  });
+
+  modelNameInput?.addEventListener("input", () => {
+    preferredModelId = modelNameInput.value.trim();
+    const provider = getProviderById(modelProviderIdInput.value);
+    maybeAutofillDisplayName(provider);
+    invalidateModelVerification();
+  });
+
+  modelBaseUrlInput?.addEventListener("input", () => {
+    invalidateModelVerification();
+    scheduleFetchRemoteModels();
+  });
+
+  modelApiKeyInput?.addEventListener("input", () => {
+    invalidateModelVerification();
+    scheduleFetchRemoteModels();
+  });
+
+  modelRefreshBtn?.addEventListener("click", () => {
+    fetchRemoteModels().catch((error) => {
+      setModelsFetchStatus(error?.message || "Could not load models.", {
+        error: true,
+      });
+    });
+  });
+
+  modelDisplayNameInput?.addEventListener("input", () => {
+    displayNameTouched = Boolean(modelDisplayNameInput.value.trim());
+  });
+
+  modelApiKeyToggle?.addEventListener("click", () => {
+    if (!modelApiKeyInput) return;
+    const showing = modelApiKeyInput.type === "text";
+    modelApiKeyInput.type = showing ? "password" : "text";
+    modelApiKeyToggle.setAttribute("aria-label", showing ? "Show API key" : "Hide API key");
+    modelApiKeyToggle.title = showing ? "Show API key" : "Hide API key";
+  });
+
+  modelVerifyBtn?.addEventListener("click", () => {
+    verifyModel().catch((error) => {
+      setModelVerified(false);
+      setVerifyStatus(error?.message || "Verification failed.", { error: true });
+    });
+  });
 }
 
 export function getActiveWorkspacePath() {

@@ -664,6 +664,154 @@ function extractPolishedPromptText(response) {
 }
 
 /**
+ * Probe an OpenAI-compatible endpoint with the given credentials.
+ * Prefers GET /models; falls back to a 1-token chat completion when needed.
+ */
+async function verifyModelConfig({ baseUrl, apiKey, modelName }) {
+  const normalizedBase = normalizeBaseUrl(baseUrl);
+  const key = String(apiKey || "").trim();
+  const model = String(modelName || "").trim();
+
+  if (!normalizedBase) throw new Error("Base URL is required.");
+  if (!key) throw new Error("API key is required.");
+  if (!model) throw new Error("Model name is required.");
+
+  let modelsOk = false;
+  try {
+    await listRemoteModels({ baseUrl: normalizedBase, apiKey: key });
+    modelsOk = true;
+  } catch (error) {
+    if (/rejected|unauthorized|401|403/i.test(String(error?.message || ""))) {
+      throw error;
+    }
+    // /models unavailable — fall through to chat ping.
+  }
+
+  try {
+    const chatModel = new ChatOpenAI({
+      model,
+      apiKey: key,
+      configuration: { baseURL: normalizedBase },
+      streaming: false,
+      maxTokens: 1,
+      temperature: 0,
+    });
+    await chatModel.invoke([new HumanMessage("ping")]);
+    return {
+      ok: true,
+      message: modelsOk
+        ? "API key and model verified."
+        : "Model endpoint verified.",
+    };
+  } catch (error) {
+    const msg = String(error?.message || error || "Verification failed.");
+    if (/401|unauthorized|invalid.*key|authentication/i.test(msg)) {
+      throw new Error("API key was rejected by the provider.");
+    }
+    if (/404|model_not_found|does not exist|not found/i.test(msg)) {
+      throw new Error(`Model "${model}" was not found on this endpoint.`);
+    }
+    throw new Error(msg.length > 240 ? `${msg.slice(0, 240)}…` : msg);
+  }
+}
+
+/**
+ * Fetch model IDs from an OpenAI-compatible GET /models endpoint.
+ * @param {{ baseUrl: string, apiKey?: string, modelsPath?: string, headers?: Record<string, string> }} opts
+ * @returns {Promise<{ models: Array<{ id: string, label: string }> }>}
+ */
+async function listRemoteModels({
+  baseUrl,
+  apiKey,
+  modelsPath = "/models",
+  headers = {},
+} = {}) {
+  const normalizedBase = normalizeBaseUrl(baseUrl);
+  const key = String(apiKey || "").trim();
+
+  if (!normalizedBase) throw new Error("Base URL is required.");
+
+  const path = String(modelsPath || "/models").startsWith("/")
+    ? String(modelsPath || "/models")
+    : `/${String(modelsPath || "/models")}`;
+
+  const authHeaders = {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    ...(key ? { Authorization: `Bearer ${key}` } : {}),
+    ...headers,
+  };
+
+  let response;
+  try {
+    response = await fetch(`${normalizedBase}${path}`, {
+      method: "GET",
+      headers: authHeaders,
+      signal: AbortSignal.timeout(25_000),
+    });
+  } catch (error) {
+    const msg = String(error?.message || error || "Network error");
+    throw new Error(`Could not reach models API: ${msg}`);
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    throw new Error("API key was rejected by the provider.");
+  }
+
+  if (!response.ok) {
+    let detail = "";
+    try {
+      const body = await response.json();
+      detail = body?.error?.message || body?.message || "";
+    } catch {
+      // ignore
+    }
+    throw new Error(
+      detail
+        ? `Models API failed (${response.status}): ${detail}`
+        : `Models API failed with status ${response.status}.`
+    );
+  }
+
+  let body;
+  try {
+    body = await response.json();
+  } catch {
+    throw new Error("Models API returned invalid JSON.");
+  }
+
+  const rows = Array.isArray(body?.data)
+    ? body.data
+    : Array.isArray(body?.models)
+      ? body.models
+      : Array.isArray(body)
+        ? body
+        : [];
+
+  const seen = new Set();
+  const models = [];
+  for (const row of rows) {
+    const id = String(row?.id || row?.name || row?.model || "").trim();
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    const owned = String(row?.owned_by || row?.publisher || "").trim();
+    const display = String(row?.display_name || row?.name || "").trim();
+    let label = id;
+    if (display && display !== id) label = `${id} — ${display}`;
+    else if (owned && owned !== "system" && !id.includes("/")) label = `${id} (${owned})`;
+    models.push({ id, label });
+  }
+
+  models.sort((a, b) => a.id.localeCompare(b.id));
+
+  if (!models.length) {
+    throw new Error("Models API returned an empty list.");
+  }
+
+  return { models };
+}
+
+/**
  * Rewrite a draft composer prompt with the selected chat model.
  * Does not touch conversation history or the agent loop.
  */
@@ -2396,6 +2544,8 @@ module.exports = {
   isRunActive,
   exportAgentState,
   polishPrompt,
+  verifyModelConfig,
+  listRemoteModels,
   runChatTurn,
   getContextUsage,
   resolveToolApproval,
