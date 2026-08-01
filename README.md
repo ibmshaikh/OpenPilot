@@ -4,6 +4,12 @@
 
 It is a chat-first desktop app (Electron) that runs locally. You choose the model provider, the workspace, and the tools. Keys stay on your machine.
 
+<div align="center">
+  <video src="assets/hero-demo.mp4" width="100%" autoplay loop muted playsinline controls>
+    <a href="assets/hero-demo.mp4">Watch the OpenPilot demo</a>
+  </video>
+</div>
+
 ---
 
 ## Why OpenPilot?
