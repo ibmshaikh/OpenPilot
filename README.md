@@ -4,7 +4,7 @@
 
 It is a chat-first desktop app (Electron) that runs locally. You choose the model provider, the workspace, and the tools. Keys stay on your machine.
 
-<video src="assets/hero-demo.mp4" poster="assets/hero-demo-poster.jpg" controls muted loop playsinline width="100%"></video>
+[![OpenPilot demo](assets/hero-demo-poster.jpg)](assets/hero-demo.mp4)
 
 ---
 
