@@ -970,7 +970,7 @@
         <header class="modal-header">
           <div>
             <h2 id="model-form-title">Add new model</h2>
-            <p id="model-form-subtitle">Pick a provider, enter a key, then verify before saving.</p>
+            <p id="model-form-subtitle">Pick a provider, enter a key, then verify or load models before saving.</p>
           </div>
           <button class="modal-close" id="model-form-close" type="button" aria-label="Close model form">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -1026,7 +1026,15 @@
           <label class="field">
             <span class="label">OpenAI Compatible Base URL</span>
             <div class="input-with-icon">
-              <input id="model-base-url" type="url" placeholder="https://api.openai.com/v1" required />
+              <input
+                id="model-base-url"
+                type="text"
+                inputmode="url"
+                placeholder="https://api.openai.com/v1"
+                required
+                autocomplete="off"
+                spellcheck="false"
+              />
               <svg class="input-trailing-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                 <circle cx="7" cy="7" r="5.25" stroke="currentColor" stroke-width="1.2" />
                 <path d="M2.5 7h9M7 2.5c1.4 1.6 1.4 7.4 0 9M7 2.5c-1.4 1.6-1.4 7.4 0 9" stroke="currentColor" stroke-width="1.2" />

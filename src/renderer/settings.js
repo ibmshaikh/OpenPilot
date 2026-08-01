@@ -106,14 +106,32 @@ export { checkForAppUpdates };
 const CUSTOM_MODEL_OPTION = "__custom__";
 
 let modelVerified = false;
+let verifiedFingerprint = "";
 let displayNameTouched = false;
 let providerMenuBuilt = false;
 let verifyingModel = false;
+/** Suppresses verification invalidation while we sync controls programmatically. */
+let syncingModelControls = false;
 /** @type {Array<{ id: string, label: string }>} */
 let remoteModels = [];
 let modelsFetchToken = 0;
 let modelsFetchTimer = null;
 let preferredModelId = "";
+
+function modelFormFingerprint() {
+  return [
+    getSelectedModelName(),
+    modelBaseUrlInput?.value.trim() || "",
+    resolveApiKeyForRequest(),
+  ].join("\0");
+}
+
+function markModelVerified(message) {
+  modelVerified = true;
+  verifiedFingerprint = modelFormFingerprint();
+  if (modelFormSaveBtn) modelFormSaveBtn.disabled = false;
+  if (message) setVerifyStatus(message, { ok: true });
+}
 
 export function renderModelList() {
   modelListEl.innerHTML = "";
@@ -791,18 +809,44 @@ function setVerifyStatus(message, { ok = false, error = false } = {}) {
 
 function setModelVerified(next) {
   modelVerified = Boolean(next);
+  if (!modelVerified) verifiedFingerprint = "";
+  else verifiedFingerprint = modelFormFingerprint();
   if (modelFormSaveBtn) {
     modelFormSaveBtn.disabled = !modelVerified;
   }
 }
 
 function invalidateModelVerification(message = "") {
+  if (syncingModelControls) return;
+  // Ignore no-op input events that don't change the verified credentials
+  // (password managers / autofill often re-fire input with the same value).
+  if (modelVerified && verifiedFingerprint && modelFormFingerprint() === verifiedFingerprint) {
+    return;
+  }
   setModelVerified(false);
   if (message) {
     setVerifyStatus(message, { error: false });
   } else {
     setVerifyStatus("");
   }
+}
+
+/** Keep Save enabled when only the model id changes after a successful key check. */
+function retainVerificationForModelIdChange(provider) {
+  const hasModel = Boolean(getSelectedModelName());
+  const hasCreds =
+    Boolean(modelBaseUrlInput?.value.trim()) && Boolean(resolveApiKeyForRequest());
+  if (modelVerified && hasModel && hasCreds) {
+    verifiedFingerprint = modelFormFingerprint();
+    maybeAutofillDisplayName(provider);
+    if (modelFormSaveBtn) modelFormSaveBtn.disabled = false;
+    return;
+  }
+  if (!hasModel) {
+    setModelVerified(false);
+    return;
+  }
+  invalidateModelVerification();
 }
 
 function closeProviderMenu() {
@@ -937,49 +981,55 @@ function syncModelNameControls(selectedModelId = "") {
   const selected = String(selectedModelId || preferredModelId || "").trim();
   const known = remoteModels.some((m) => m.id === selected);
 
-  modelNameSelect.innerHTML = "";
+  syncingModelControls = true;
+  try {
+    modelNameSelect.innerHTML = "";
 
-  if (!remoteModels.length) {
-    modelNameSelect.hidden = true;
-    modelNameInput.hidden = false;
-    modelNameInput.required = true;
-    if (selected) modelNameInput.value = selected;
-    if (modelRefreshBtn) {
-      modelRefreshBtn.hidden = !modelBaseUrlInput?.value.trim();
+    if (!remoteModels.length) {
+      modelNameSelect.hidden = true;
+      modelNameInput.hidden = false;
+      modelNameInput.required = true;
+      if (selected) modelNameInput.value = selected;
+      if (modelRefreshBtn) {
+        modelRefreshBtn.hidden = !modelBaseUrlInput?.value.trim();
+      }
+      return;
     }
-    return;
-  }
 
-  for (const model of remoteModels) {
-    const option = document.createElement("option");
-    option.value = model.id;
-    option.textContent = model.label || model.id;
-    modelNameSelect.appendChild(option);
-  }
+    for (const model of remoteModels) {
+      const option = document.createElement("option");
+      option.value = model.id;
+      option.textContent = model.label || model.id;
+      modelNameSelect.appendChild(option);
+    }
 
-  const customOption = document.createElement("option");
-  customOption.value = CUSTOM_MODEL_OPTION;
-  customOption.textContent = "Custom model ID…";
-  modelNameSelect.appendChild(customOption);
+    const customOption = document.createElement("option");
+    customOption.value = CUSTOM_MODEL_OPTION;
+    customOption.textContent = "Custom model ID…";
+    modelNameSelect.appendChild(customOption);
 
-  modelNameSelect.hidden = false;
-  if (modelRefreshBtn) modelRefreshBtn.hidden = false;
+    modelNameSelect.hidden = false;
+    if (modelRefreshBtn) modelRefreshBtn.hidden = false;
 
-  if (selected && known) {
-    modelNameSelect.value = selected;
-    modelNameInput.hidden = true;
-    modelNameInput.required = false;
-    modelNameInput.value = selected;
-  } else if (selected) {
-    modelNameSelect.value = CUSTOM_MODEL_OPTION;
-    modelNameInput.hidden = false;
-    modelNameInput.required = true;
-    modelNameInput.value = selected;
-  } else {
-    modelNameSelect.value = remoteModels[0].id;
-    modelNameInput.hidden = true;
-    modelNameInput.required = false;
-    modelNameInput.value = remoteModels[0].id;
+    if (selected && known) {
+      modelNameSelect.value = selected;
+      modelNameInput.hidden = true;
+      modelNameInput.required = false;
+      modelNameInput.value = selected;
+    } else if (selected) {
+      modelNameSelect.value = CUSTOM_MODEL_OPTION;
+      modelNameInput.hidden = false;
+      modelNameInput.required = true;
+      modelNameInput.value = selected;
+    } else {
+      modelNameSelect.value = remoteModels[0].id;
+      modelNameInput.hidden = true;
+      modelNameInput.required = false;
+      modelNameInput.value = remoteModels[0].id;
+      preferredModelId = remoteModels[0].id;
+    }
+  } finally {
+    syncingModelControls = false;
   }
 }
 
@@ -1022,11 +1072,16 @@ async function fetchRemoteModels(opts = {}) {
   const token = ++modelsFetchToken;
   if (modelRefreshBtn) modelRefreshBtn.hidden = false;
   setModelsFetchStatus("Loading models from provider…");
-  modelNameSelect.hidden = true;
-  modelNameInput.hidden = false;
-  modelNameInput.required = true;
-  modelNameInput.placeholder = "Loading models…";
-  if (selectedModelId) modelNameInput.value = selectedModelId;
+  syncingModelControls = true;
+  try {
+    modelNameSelect.hidden = true;
+    modelNameInput.hidden = false;
+    modelNameInput.required = true;
+    modelNameInput.placeholder = "Loading models…";
+    if (selectedModelId) modelNameInput.value = selectedModelId;
+  } finally {
+    syncingModelControls = false;
+  }
 
   try {
     const result = await window.onecode.models.listRemote({
@@ -1048,6 +1103,17 @@ async function fetchRemoteModels(opts = {}) {
 
     const currentProvider = getProviderById(modelProviderIdInput?.value);
     maybeAutofillDisplayName(currentProvider);
+
+    // Listing models already proved the API key against this base URL.
+    // Enable Save once a model id is present so users aren't stuck after a
+    // successful load that they reasonably treat as "verified".
+    if (getSelectedModelName() && baseUrl && (apiKey || !providerNeedsApiKey(provider))) {
+      markModelVerified(
+        remoteModels.length
+          ? "API key accepted. You can save this model."
+          : "Endpoint reachable. Enter a model id and save."
+      );
+    }
   } catch (error) {
     if (token !== modelsFetchToken) return;
     remoteModels = [];
@@ -1219,7 +1285,12 @@ export function closeModelForm() {
 
 export async function verifyModel() {
   clearModelFormError();
-  if (verifyingModel) return;
+  if (verifyingModel) return false;
+
+  // Trim URL in-place so HTML constraint validation matches what we verify.
+  if (modelBaseUrlInput) {
+    modelBaseUrlInput.value = modelBaseUrlInput.value.trim();
+  }
 
   const payload = {
     modelName: getSelectedModelName(),
@@ -1232,7 +1303,7 @@ export async function verifyModel() {
     setVerifyStatus("Enter model name, base URL, and API key before verifying.", {
       error: true,
     });
-    return;
+    return false;
   }
 
   verifyingModel = true;
@@ -1244,11 +1315,13 @@ export async function verifyModel() {
 
   try {
     const result = await window.onecode.models.verify(payload);
-    setModelVerified(true);
-    setVerifyStatus(result?.message || "API key and model verified.", { ok: true });
+    markModelVerified(result?.message || "API key and model verified.");
+    maybeAutofillDisplayName(getProviderById(modelProviderIdInput?.value));
+    return true;
   } catch (error) {
     setModelVerified(false);
     setVerifyStatus(error?.message || "Verification failed.", { error: true });
+    return false;
   } finally {
     verifyingModel = false;
     if (modelVerifyBtn) {
@@ -1262,9 +1335,12 @@ export async function saveModel(event) {
   event.preventDefault();
   clearModelFormError();
 
-  if (!modelVerified) {
-    showModelFormError("Verify the API key before saving this model.");
-    return;
+  if (modelBaseUrlInput) {
+    modelBaseUrlInput.value = modelBaseUrlInput.value.trim();
+  }
+  if (modelDisplayNameInput && !modelDisplayNameInput.value.trim()) {
+    displayNameTouched = false;
+    maybeAutofillDisplayName(getProviderById(modelProviderIdInput?.value));
   }
 
   const payload = {
@@ -1273,6 +1349,21 @@ export async function saveModel(event) {
     apiKey: resolveApiKeyForRequest(),
     displayName: modelDisplayNameInput.value.trim(),
   };
+
+  if (!payload.modelName || !payload.baseUrl || !payload.apiKey || !payload.displayName) {
+    showModelFormError("Fill in model name, base URL, API key, and display name.");
+    return;
+  }
+
+  // If credentials changed since last verify, or verify was skipped after a
+  // successful /models load that later drifted, re-check before persisting.
+  if (!modelVerified || modelFormFingerprint() !== verifiedFingerprint) {
+    const ok = await verifyModel();
+    if (!ok) {
+      showModelFormError("Verify the API key before saving this model.");
+      return;
+    }
+  }
 
   try {
     if (state.editingModelId) {
@@ -1358,22 +1449,33 @@ export function initModelFormControls() {
       preferredModelId = modelNameSelect.value;
       maybeAutofillDisplayName(provider);
     }
-    invalidateModelVerification();
+    retainVerificationForModelIdChange(provider);
   });
 
   modelNameInput?.addEventListener("input", () => {
+    if (syncingModelControls) return;
     preferredModelId = modelNameInput.value.trim();
     const provider = getProviderById(modelProviderIdInput.value);
     maybeAutofillDisplayName(provider);
-    invalidateModelVerification();
+    retainVerificationForModelIdChange(provider);
   });
 
   modelBaseUrlInput?.addEventListener("input", () => {
+    if (syncingModelControls) return;
     invalidateModelVerification();
     scheduleFetchRemoteModels();
   });
 
+  modelBaseUrlInput?.addEventListener("blur", () => {
+    if (!modelBaseUrlInput) return;
+    const trimmed = modelBaseUrlInput.value.trim();
+    if (trimmed !== modelBaseUrlInput.value) {
+      modelBaseUrlInput.value = trimmed;
+    }
+  });
+
   modelApiKeyInput?.addEventListener("input", () => {
+    if (syncingModelControls) return;
     invalidateModelVerification();
     scheduleFetchRemoteModels();
   });
