@@ -319,6 +319,16 @@ async function installUpdate() {
       message: "Installing update… OpenPilot will restart.",
     });
 
+    try {
+      const { track } = require("./telemetry");
+      track("update_installed", {
+        from: version || "",
+        to: String(updateState.latestVersion || ""),
+      });
+    } catch {
+      // ignore telemetry failures during install
+    }
+
     setTimeout(() => {
       try {
         updater.quitAndInstall(false, true);

@@ -33,6 +33,7 @@ import {
   usageRefreshBtn,
   usageResetBtn,
   aboutCheckUpdateBtn,
+  telemetryEnabledInput,
   tinyfishForm,
   memoryForm,
   agentForm,
@@ -101,6 +102,7 @@ import {
   saveTinyFishSettings,
   showTinyFishFormError,
   saveMemorySettings,
+  saveTelemetrySettings,
   saveAgentSettings,
   revealMemoryFile,
   renderMcpStatus,
@@ -474,6 +476,14 @@ if (aboutCheckUpdateBtn) {
     checkForAppUpdates().catch((error) => {
       console.error(error);
       window.alert(error?.message || "Failed to check for updates.");
+    });
+  });
+}
+
+if (telemetryEnabledInput) {
+  telemetryEnabledInput.addEventListener("change", () => {
+    saveTelemetrySettings(telemetryEnabledInput.checked).catch((error) => {
+      console.error(error);
     });
   });
 }

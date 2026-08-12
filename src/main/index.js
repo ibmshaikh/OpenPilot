@@ -22,6 +22,8 @@ const {
   saveOnboardingSettings,
   getMemorySettings,
   saveMemorySettings,
+  getTelemetrySettings,
+  saveTelemetrySettings,
   getTokenUsage,
   resetTokenUsage,
   listConversations,
@@ -85,6 +87,14 @@ const {
   installUpdate,
   getUpdateState,
 } = require("./updater");
+const {
+  initializeTelemetry,
+  setTelemetryEnabled,
+  track,
+} = require("./telemetry");
+
+// Aptabase must initialize before app.whenReady().
+initializeTelemetry();
 
 const APP_ICON_PNG = path.join(__dirname, "../../assets/icons", "icon.png");
 const APP_ICON_ICNS = path.join(__dirname, "../../assets/icons", "icon.icns");
@@ -208,6 +218,11 @@ app.whenReady().then(() => {
   }
 
   initDatabase();
+  const telemetrySettings = getTelemetrySettings();
+  setTelemetryEnabled(telemetrySettings.enabled);
+  if (telemetrySettings.enabled) {
+    track("app_started");
+  }
   initMcp(app.getPath("userData"));
   createWindow();
   setupAutoUpdater();
@@ -222,6 +237,15 @@ app.whenReady().then(() => {
       throw new Error("Only http(s) URLs can be opened.");
     }
     await shell.openExternal(target);
+    return { ok: true };
+  });
+
+  ipcMain.handle("telemetry:track", (_event, payload = {}) => {
+    const name = String(payload?.name || "").trim();
+    if (!name) return { ok: false };
+    const props =
+      payload?.props && typeof payload.props === "object" ? payload.props : undefined;
+    track(name, props);
     return { ok: true };
   });
 
@@ -266,7 +290,9 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle("models:create", (_event, payload) => {
-    return createModel(validateModelPayload(payload));
+    const model = createModel(validateModelPayload(payload));
+    track("model_saved", { action: "create", verified: 1 });
+    return model;
   });
 
   ipcMain.handle("models:update", (_event, id, payload) => {
@@ -274,7 +300,9 @@ app.whenReady().then(() => {
     if (!Number.isInteger(numericId) || numericId <= 0) {
       throw new Error("Invalid model id.");
     }
-    return updateModel(numericId, validateModelPayload(payload));
+    const model = updateModel(numericId, validateModelPayload(payload));
+    track("model_saved", { action: "update", verified: 1 });
+    return model;
   });
 
   ipcMain.handle("models:delete", (_event, id) => {
@@ -303,15 +331,33 @@ app.whenReady().then(() => {
     }
     const saved = saveTinyFishSettings({ enabled, apiKey });
     invalidateAllCachedAgents();
+    track("tinyfish_toggled", { enabled: saved.enabled ? 1 : 0 });
     return saved;
   });
 
   ipcMain.handle("settings:onboarding:get", () => getOnboardingSettings());
 
   ipcMain.handle("settings:onboarding:save", (_event, payload) => {
-    return saveOnboardingSettings({
+    const saved = saveOnboardingSettings({
       completed: Boolean(payload?.completed),
     });
+    if (saved.completed) {
+      track("onboarding_completed");
+    }
+    return saved;
+  });
+
+  ipcMain.handle("settings:telemetry:get", () => getTelemetrySettings());
+
+  ipcMain.handle("settings:telemetry:save", (_event, payload) => {
+    const saved = saveTelemetrySettings({
+      enabled: Boolean(payload?.enabled),
+    });
+    setTelemetryEnabled(saved.enabled);
+    if (saved.enabled) {
+      track("telemetry_enabled");
+    }
+    return saved;
   });
 
   ipcMain.handle("settings:memory:get", (_event, workspacePath) => {
@@ -435,7 +481,13 @@ app.whenReady().then(() => {
     return readMcpLogs(Number.isFinite(size) && size > 0 ? size : 200);
   });
 
-  ipcMain.handle("mcp:reload", async () => reloadAndTest({ reason: "ui-retest" }));
+  ipcMain.handle("mcp:reload", async () => {
+    const result = await reloadAndTest({ reason: "ui-retest" });
+    track("mcp_configured", {
+      success: result?.valid ? 1 : 0,
+    });
+    return result;
+  });
 
   ipcMain.handle("mcp:openConfig", async () => {
     const configPath = getMcpConfigPath();
@@ -551,6 +603,7 @@ app.whenReady().then(() => {
     const fullPath = setWorkspacePath(id, candidate);
     updateConversationWorkspace(id, fullPath);
     saveConversationAgentState(id, exportAgentState(id));
+    track("workspace_selected", { source: "set" });
     return {
       path: fullPath,
       label: formatPathLabel(fullPath),
@@ -580,6 +633,7 @@ app.whenReady().then(() => {
     const fullPath = setWorkspacePath(id, result.filePaths[0]);
     updateConversationWorkspace(id, fullPath);
     saveConversationAgentState(id, exportAgentState(id));
+    track("workspace_selected", { source: "pick" });
     return {
       path: fullPath,
       label: formatPathLabel(fullPath),
@@ -855,6 +909,20 @@ app.whenReady().then(() => {
       }
     };
 
+    const skillList = Array.isArray(payload?.skills)
+      ? payload.skills
+          .map((skill) => ({
+            name: String(skill?.name || "").trim(),
+            scope: String(skill?.scope || "user").trim(),
+          }))
+          .filter((skill) => skill.name)
+      : [];
+
+    track("prompt_submitted");
+    if (skillList.length > 0) {
+      track("skill_used", { count: skillList.length });
+    }
+
     await runChatTurn(
       {
         conversationId,
@@ -870,14 +938,7 @@ app.whenReady().then(() => {
             ? payload.mcp.servers.map((name) => String(name || "").trim()).filter(Boolean)
             : [],
         },
-        skills: Array.isArray(payload?.skills)
-          ? payload.skills
-              .map((skill) => ({
-                name: String(skill?.name || "").trim(),
-                scope: String(skill?.scope || "user").trim(),
-              }))
-              .filter((skill) => skill.name)
-          : [],
+        skills: skillList,
       },
       emit
     );

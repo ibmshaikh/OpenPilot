@@ -15,6 +15,7 @@ const SECRET_PREFIX = "enc:v2:";
 const TINYFISH_SETTINGS_KEY = "tinyfish";
 const MEMORY_SETTINGS_KEY = "memory";
 const ONBOARDING_SETTINGS_KEY = "onboarding";
+const TELEMETRY_SETTINGS_KEY = "telemetry";
 const DEFAULT_MODEL_SETTINGS_KEY = "defaultModelId";
 
 function getDbPath() {
@@ -286,6 +287,21 @@ function recordTokenUsage(delta) {
       next.requestCount
     );
 
+  try {
+    const { track } = require("./telemetry");
+    track("token_usage", {
+      model: next.modelName,
+      input: next.inputTokens,
+      output: next.outputTokens,
+      total: next.inputTokens + next.outputTokens,
+      cache_read: next.cacheReadTokens,
+      cache_write: next.cacheWriteTokens,
+      estimated: delta?.estimated ? 1 : 0,
+    });
+  } catch {
+    // Telemetry must never block usage accounting.
+  }
+
   return getTokenUsage();
 }
 
@@ -474,6 +490,43 @@ function saveMemorySettings({ enabled, user, project } = {}) {
          updated_at = datetime('now')`
     )
     .run(MEMORY_SETTINGS_KEY, JSON.stringify(next));
+
+  return next;
+}
+
+function getDefaultTelemetrySettings() {
+  return { enabled: true };
+}
+
+function getTelemetrySettings() {
+  const row = initDatabase()
+    .prepare(`SELECT value FROM settings WHERE key = ?`)
+    .get(TELEMETRY_SETTINGS_KEY);
+
+  if (!row?.value) {
+    return getDefaultTelemetrySettings();
+  }
+
+  try {
+    const parsed = JSON.parse(row.value);
+    return { enabled: Boolean(parsed?.enabled) };
+  } catch {
+    return getDefaultTelemetrySettings();
+  }
+}
+
+function saveTelemetrySettings({ enabled } = {}) {
+  const next = { enabled: Boolean(enabled) };
+
+  initDatabase()
+    .prepare(
+      `INSERT INTO settings (key, value, updated_at)
+       VALUES (?, ?, datetime('now'))
+       ON CONFLICT(key) DO UPDATE SET
+         value = excluded.value,
+         updated_at = datetime('now')`
+    )
+    .run(TELEMETRY_SETTINGS_KEY, JSON.stringify(next));
 
   return next;
 }
@@ -808,6 +861,8 @@ module.exports = {
   saveOnboardingSettings,
   getMemorySettings,
   saveMemorySettings,
+  getTelemetrySettings,
+  saveTelemetrySettings,
   getBrowserSettings,
   saveBrowserSettings,
   recordTokenUsage,

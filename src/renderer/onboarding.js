@@ -5,9 +5,9 @@ import {
   onboardingSkipBtn,
   onboardingBackBtn,
   onboardingNextBtn,
-  onboardingModelForm,
   onboardingModelError,
   onboardingModelStatus,
+  onboardingAddModelBtn,
   onboardingWorkspacePath,
   onboardingWorkspacePickBtn,
   onboardingTinyfishForm,
@@ -15,13 +15,14 @@ import {
   onboardingTinyfishApiKey,
   onboardingTinyfishError,
   onboardingTinyfishStatus,
+  onboardingTelemetryEnabled,
   composerSetupBannerBtn,
   input,
   form,
   shell,
 } from "./dom.js";
 import { state, applyWorkspaceToUi } from "./state.js";
-import { openSettings, renderModelList } from "./settings.js";
+import { openSettings, openModelForm, renderModelList } from "./settings.js";
 import {
   syncComposerModelLabel,
   syncComposerSetupBanner,
@@ -33,7 +34,7 @@ import { clearThreadLoadingState } from "./chat.js";
 
 export const ONBOARDING_KEY = "onecode.onboardingComplete";
 
-const STEPS = ["welcome", "model", "workspace", "tinyfish"];
+const STEPS = ["welcome", "model", "workspace", "tinyfish", "telemetry"];
 
 let stepIndex = 0;
 let onCompleteCb = null;
@@ -89,6 +90,19 @@ function setStep(index) {
 
   if (id === "workspace") {
     syncWorkspaceStep();
+  }
+
+  if (id === "model") {
+    refreshModelsLocal()
+      .then(() => {
+        clearModelError();
+        if (onboardingModelStatus) onboardingModelStatus.hidden = true;
+      })
+      .catch((error) => console.error(error));
+  }
+
+  if (id === "model" || id === "workspace" || id === "tinyfish" || id === "telemetry") {
+    window.onecode?.telemetry?.track?.("onboarding_step", { step: id }).catch?.(() => {});
   }
 }
 
@@ -149,73 +163,20 @@ async function refreshModelsLocal() {
   syncComposerSetupBanner();
 }
 
-function getOnboardingModelPayload() {
-  if (!onboardingModelForm) return null;
-  const formData = new FormData(onboardingModelForm);
-  return {
-    modelName: String(formData.get("modelName") || "").trim(),
-    baseUrl: String(formData.get("baseUrl") || "").trim(),
-    apiKey: String(formData.get("apiKey") || "").trim(),
-    displayName: String(formData.get("displayName") || "").trim(),
-  };
-}
-
-function isModelPayloadEmpty(payload) {
-  return !payload?.modelName && !payload?.baseUrl && !payload?.apiKey && !payload?.displayName;
-}
-
-function isModelPayloadComplete(payload) {
-  return Boolean(
-    payload?.modelName && payload?.baseUrl && payload?.apiKey && payload?.displayName
-  );
-}
-
 /**
- * Persist model fields when leaving the model step or finishing onboarding.
- * @param {{ strict?: boolean }} opts - when strict, partial fills block navigation
- * @returns {Promise<boolean>} false when navigation should stop
+ * Model step uses the shared Settings "Add model" form (provider picker).
+ * Leaving blank is allowed — configure later in Settings.
+ * @returns {Promise<boolean>}
  */
-async function persistModelStep({ strict = false } = {}) {
-  const payload = getOnboardingModelPayload();
-  if (!payload || isModelPayloadEmpty(payload)) return true;
-
+async function persistModelStep() {
   clearModelError();
   if (onboardingModelStatus) onboardingModelStatus.hidden = true;
-
-  if (!isModelPayloadComplete(payload)) {
-    if (strict) {
-      showModelError("Fill in all model fields, or clear them to continue without one.");
-      return false;
-    }
-    return true;
-  }
-
   try {
-    const created = await window.onecode.models.create(payload);
-    const hasDefault = state.customModels.some((m) => m.id === state.defaultModelId);
-    if (!hasDefault && created?.id) {
-      setDefaultModel(created.id, { syncSelection: true });
-    } else if (created?.id && state.selectedModelId == null) {
-      setSelectedModel(created.id);
-    }
     await refreshModelsLocal();
-    onboardingModelForm?.reset();
-    if (onboardingModelStatus) {
-      onboardingModelStatus.hidden = false;
-      onboardingModelStatus.textContent = "Model saved.";
-    }
     return true;
   } catch (error) {
-    showModelError(error?.message || "Failed to save model.");
+    showModelError(error?.message || "Failed to load models.");
     return false;
-  }
-}
-
-async function saveOnboardingModel(event) {
-  event.preventDefault();
-  const ok = await persistModelStep({ strict: true });
-  if (ok && onboardingModelStatus) {
-    onboardingModelStatus.textContent = "Model saved. You can add more later in Settings.";
   }
 }
 
@@ -288,6 +249,23 @@ function clearTinyFishError() {
   onboardingTinyfishError.textContent = "";
 }
 
+/**
+ * Persist the Share usage preference from onboarding (default on).
+ * @returns {Promise<boolean>}
+ */
+async function persistTelemetryStep() {
+  const enabled = onboardingTelemetryEnabled
+    ? Boolean(onboardingTelemetryEnabled.checked)
+    : true;
+  try {
+    await window.onecode.settings.saveTelemetry({ enabled });
+    return true;
+  } catch (error) {
+    console.error(error);
+    return true;
+  }
+}
+
 function hideOnboardingOverlay() {
   if (!onboardingEl) return;
   onboardingEl.hidden = true;
@@ -356,12 +334,16 @@ async function unlockChatAfterOnboarding() {
 
 async function finishOnboarding({ persistFilled = true, strictPersist = false } = {}) {
   if (persistFilled) {
-    const modelOk = await persistModelStep({ strict: strictPersist });
+    const modelOk = await persistModelStep();
     if (!modelOk) return false;
     const tinyOk = await persistTinyFishStep({ strict: strictPersist });
     if (!tinyOk) return false;
   }
 
+  // Always persist the Share usage choice (defaults to on if skip before that step).
+  await persistTelemetryStep();
+
+  window.onecode?.telemetry?.track?.("onboarding_step", { step: "done" }).catch?.(() => {});
   await markOnboardingComplete();
   hideOnboardingOverlay();
   document.body.classList.remove("onboarding-open");
@@ -379,7 +361,7 @@ async function advanceOnboarding() {
     const step = STEPS[stepIndex];
 
     if (step === "model") {
-      const ok = await persistModelStep({ strict: true });
+      const ok = await persistModelStep();
       if (!ok) return;
     }
 
@@ -429,12 +411,9 @@ export function initOnboarding() {
     });
   }
 
-  if (onboardingModelForm) {
-    onboardingModelForm.addEventListener("submit", (event) => {
-      saveOnboardingModel(event).catch((error) => {
-        console.error(error);
-        showModelError(error?.message || "Failed to save model.");
-      });
+  if (onboardingAddModelBtn) {
+    onboardingAddModelBtn.addEventListener("click", () => {
+      openModelForm();
     });
   }
 

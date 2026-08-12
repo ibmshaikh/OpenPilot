@@ -5906,6 +5906,10 @@ body.update-in-progress {
   background: rgba(0, 0, 0, 0.65);
 }
 
+body.onboarding-open .modal-backdrop.nested {
+  z-index: 70;
+}
+
 .model-form-modal {
   width: min(100%, 440px);
   min-height: auto;
@@ -6719,6 +6723,32 @@ body.onboarding-open {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.onboarding-models-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.onboarding-models-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.onboarding-models-panel .model-list {
+  max-height: min(36vh, 280px);
+  overflow: auto;
+}
+
+.onboarding-models-panel .model-card {
+  padding: 0.7rem 0.75rem;
+}
+
+.onboarding-models-panel .model-card-actions {
+  flex-wrap: wrap;
 }
 
 .onboarding-status {

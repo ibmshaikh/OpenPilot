@@ -467,6 +467,7 @@
           <span class="onboarding-dot" data-onboard-dot></span>
           <span class="onboarding-dot" data-onboard-dot></span>
           <span class="onboarding-dot" data-onboard-dot></span>
+          <span class="onboarding-dot" data-onboard-dot></span>
         </div>
 
         <section class="onboarding-step" data-onboard-step="welcome">
@@ -500,35 +501,26 @@
         </section>
 
         <section class="onboarding-step" data-onboard-step="model" hidden>
-          <p class="onboarding-kicker">Step 1 of 3</p>
+          <p class="onboarding-kicker">Step 1 of 4</p>
           <h2 class="onboarding-title">Connect a model</h2>
           <p class="onboarding-lead">
-            Add an OpenAI-compatible endpoint. Tap Next to save — or leave blank and configure later in Settings.
+            Pick a provider, verify your key, and choose a model — same flow as Settings.
+            Tap Next to continue, or skip and configure later.
           </p>
-          <form class="onboarding-form" id="onboarding-model-form">
-            <label class="field">
-              <span class="label">Model name</span>
-              <input name="modelName" type="text" placeholder="e.g. gpt-4o-mini" autocomplete="off" />
-            </label>
-            <label class="field">
-              <span class="label">Base URL</span>
-              <input name="baseUrl" type="url" placeholder="https://api.openai.com/v1" autocomplete="off" />
-            </label>
-            <label class="field">
-              <span class="label">API key</span>
-              <input name="apiKey" type="password" placeholder="sk-..." autocomplete="off" />
-            </label>
-            <label class="field">
-              <span class="label">Display name</span>
-              <input name="displayName" type="text" placeholder="e.g. My GPT" autocomplete="off" />
-            </label>
+          <div class="onboarding-models-panel">
+            <div class="onboarding-models-heading">
+              <span class="label">Your models</span>
+              <button type="button" class="btn primary" id="onboarding-add-model-btn">Add model</button>
+            </div>
+            <div class="model-list" id="onboarding-model-list"></div>
+            <p class="empty-models" id="onboarding-empty-models">No models yet. Add one to get started.</p>
             <p class="form-error" id="onboarding-model-error" hidden></p>
             <p class="onboarding-status" id="onboarding-model-status" hidden></p>
-          </form>
+          </div>
         </section>
 
         <section class="onboarding-step" data-onboard-step="workspace" hidden>
-          <p class="onboarding-kicker">Step 2 of 3</p>
+          <p class="onboarding-kicker">Step 2 of 4</p>
           <h2 class="onboarding-title">Choose a workspace</h2>
           <p class="onboarding-lead">
             Pick the project folder the agent should read and edit. You can change this anytime from the title bar.
@@ -540,11 +532,11 @@
         </section>
 
         <section class="onboarding-step" data-onboard-step="tinyfish" hidden>
-          <p class="onboarding-kicker">Step 3 of 3</p>
+          <p class="onboarding-kicker">Step 3 of 4</p>
           <h2 class="onboarding-title">Optional: TinyFish web search</h2>
           <p class="onboarding-lead">
             TinyFish lets the agent search the live web and fetch page content when it needs current docs,
-            versions, or facts outside your workspace. Tap Get started to save — or leave blank to skip.
+            versions, or facts outside your workspace. Tap Next to save — or leave blank to skip.
           </p>
           <div class="onboarding-callout">
             <span class="onboarding-badge">Free</span>
@@ -566,6 +558,28 @@
             <p class="form-error" id="onboarding-tinyfish-error" hidden></p>
             <p class="onboarding-status" id="onboarding-tinyfish-status" hidden></p>
           </form>
+        </section>
+
+        <section class="onboarding-step" data-onboard-step="telemetry" hidden>
+          <p class="onboarding-kicker">Step 4 of 4</p>
+          <h2 class="onboarding-title">Share anonymous usage</h2>
+          <p class="onboarding-lead">
+            Help improve OpenPilot with anonymous product events. Sharing is on by default —
+            turn it off below if you prefer. You can change this anytime in Settings → About.
+          </p>
+          <div class="onboarding-callout">
+            <p>
+              We only send coarse events such as app opens, onboarding steps, model saved,
+              workspace selected, feature toggles (TinyFish, MCP, skills), prompts submitted
+              (count only), token usage per request (model name and input/output counts —
+              never the text), and updates installed. We never send chat content, file paths,
+              diffs, API keys, or workspace folder names.
+            </p>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="onboarding-telemetry-enabled" checked />
+            <span>Share anonymous usage data</span>
+          </label>
         </section>
 
         <footer class="onboarding-footer">
@@ -916,7 +930,7 @@
               <div class="panel-heading">
                 <div>
                   <h3 class="panel-title">About</h3>
-                  <p class="panel-desc">App version and updates from GitHub Releases.</p>
+                  <p class="panel-desc">App version, updates, and optional anonymous usage sharing.</p>
                 </div>
               </div>
 
@@ -951,6 +965,22 @@
                     <span class="about-update-progress-label" id="about-update-progress-label">0%</span>
                   </div>
                 </div>
+              </div>
+
+              <div class="usage-block">
+                <div class="usage-block-header">
+                  <h4 class="usage-block-title">Anonymous usage data</h4>
+                  <p class="usage-block-desc">
+                    Anonymous product events are on by default (app opens, feature usage,
+                    token counts by model). No chats, files, paths, or API keys are sent.
+                    You can turn this off anytime.
+                  </p>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" id="telemetry-enabled" />
+                  <span>Share anonymous usage data</span>
+                </label>
+                <p class="panel-hint" id="telemetry-status" hidden></p>
               </div>
             </section>
           </div>

@@ -77,6 +77,11 @@ import {
   usageEstimateHint,
   aboutVersionEl,
   aboutUpdateStatusEl,
+  telemetryEnabledInput,
+  telemetryStatusEl,
+  onboardingModelListEl,
+  onboardingEmptyModelsEl,
+  onboardingModelStatus,
 } from "./dom.js";
 import { state, getSession } from "./state.js";
 import { escapeHtml } from "./markdown.js";
@@ -134,8 +139,16 @@ function markModelVerified(message) {
 }
 
 export function renderModelList() {
-  modelListEl.innerHTML = "";
-  emptyModelsEl.hidden = state.customModels.length > 0;
+  renderModelListInto(modelListEl, emptyModelsEl);
+  if (onboardingModelListEl) {
+    renderModelListInto(onboardingModelListEl, onboardingEmptyModelsEl);
+  }
+}
+
+function renderModelListInto(listEl, emptyEl) {
+  if (!listEl) return;
+  listEl.innerHTML = "";
+  if (emptyEl) emptyEl.hidden = state.customModels.length > 0;
 
   for (const model of state.customModels) {
     const isDefault = model.id === state.defaultModelId;
@@ -177,11 +190,13 @@ export function renderModelList() {
       defaultBtn.addEventListener("click", () => {
         setDefaultModel(model.id, { syncSelection: true });
         renderModelList();
-        settingsStatus.hidden = false;
-        settingsStatus.textContent = `"${model.displayName}" is now the default.`;
-        window.setTimeout(() => {
-          settingsStatus.hidden = true;
-        }, 1400);
+        if (settingsStatus) {
+          settingsStatus.hidden = false;
+          settingsStatus.textContent = `"${model.displayName}" is now the default.`;
+          window.setTimeout(() => {
+            settingsStatus.hidden = true;
+          }, 1400);
+        }
       });
       actions.append(defaultBtn);
     }
@@ -199,17 +214,19 @@ export function renderModelList() {
     deleteBtn.addEventListener("click", () => {
       deleteSavedModel(model).catch((error) => {
         console.error(error);
-        settingsStatus.hidden = false;
-        settingsStatus.textContent = error?.message || "Failed to delete model.";
-        window.setTimeout(() => {
-          settingsStatus.hidden = true;
-        }, 2000);
+        if (settingsStatus) {
+          settingsStatus.hidden = false;
+          settingsStatus.textContent = error?.message || "Failed to delete model.";
+          window.setTimeout(() => {
+            settingsStatus.hidden = true;
+          }, 2000);
+        }
       });
     });
 
     actions.append(editBtn, deleteBtn);
     card.append(info, actions);
-    modelListEl.appendChild(card);
+    listEl.appendChild(card);
   }
 
   syncComposerModelLabel();
@@ -466,9 +483,51 @@ export async function refreshAboutPanel() {
   }
 
   await refreshUpdateAboutState();
+  await refreshTelemetryPanel();
 
   if (aboutUpdateStatusEl && !aboutUpdateStatusEl.dataset.locked) {
     aboutUpdateStatusEl.textContent = "Updates apply to installed builds only.";
+  }
+}
+
+export async function refreshTelemetryPanel() {
+  if (!telemetryEnabledInput || !window.onecode?.settings?.getTelemetry) return;
+  try {
+    const settings = await window.onecode.settings.getTelemetry();
+    telemetryEnabledInput.checked = Boolean(settings?.enabled);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export async function saveTelemetrySettings(enabled) {
+  if (!window.onecode?.settings?.saveTelemetry) return;
+  try {
+    const saved = await window.onecode.settings.saveTelemetry({
+      enabled: Boolean(enabled),
+    });
+    if (telemetryEnabledInput) {
+      telemetryEnabledInput.checked = Boolean(saved?.enabled);
+    }
+    if (telemetryStatusEl) {
+      telemetryStatusEl.hidden = false;
+      telemetryStatusEl.textContent = saved?.enabled
+        ? "Anonymous usage sharing is on."
+        : "Anonymous usage sharing is off.";
+      window.setTimeout(() => {
+        if (telemetryStatusEl) telemetryStatusEl.hidden = true;
+      }, 2000);
+    }
+  } catch (error) {
+    if (telemetryEnabledInput) {
+      telemetryEnabledInput.checked = !Boolean(enabled);
+    }
+    if (telemetryStatusEl) {
+      telemetryStatusEl.hidden = false;
+      telemetryStatusEl.textContent =
+        error?.message || "Failed to update usage sharing preference.";
+    }
+    console.error(error);
   }
 }
 
@@ -1108,11 +1167,7 @@ async function fetchRemoteModels(opts = {}) {
     // Enable Save once a model id is present so users aren't stuck after a
     // successful load that they reasonably treat as "verified".
     if (getSelectedModelName() && baseUrl && (apiKey || !providerNeedsApiKey(provider))) {
-      markModelVerified(
-        remoteModels.length
-          ? "API key accepted. You can save this model."
-          : "Endpoint reachable. Enter a model id and save."
-      );
+      markModelVerified("API key accepted. You can save this model.");
     }
   } catch (error) {
     if (token !== modelsFetchToken) return;
@@ -1383,11 +1438,17 @@ export async function saveModel(event) {
 
     await refreshModels();
     closeModelForm();
-    settingsStatus.hidden = false;
-    settingsStatus.textContent = "Model saved.";
-    window.setTimeout(() => {
-      settingsStatus.hidden = true;
-    }, 1400);
+    if (document.body.classList.contains("onboarding-open") && onboardingModelStatus) {
+      onboardingModelStatus.hidden = false;
+      onboardingModelStatus.textContent =
+        "Model saved. You can add another or tap Next to continue.";
+    } else if (settingsStatus) {
+      settingsStatus.hidden = false;
+      settingsStatus.textContent = "Model saved.";
+      window.setTimeout(() => {
+        settingsStatus.hidden = true;
+      }, 1400);
+    }
   } catch (error) {
     showModelFormError(error?.message || "Failed to save model.");
   }

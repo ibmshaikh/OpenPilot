@@ -112,6 +112,10 @@ User data (macOS example):
 - App data: `~/Library/Application Support/OpenPilot/` (`onecode.sqlite`, `secrets.key`, `mcp.json`)
 - Skills / memory: `~/.onecode/`
 
+## Telemetry
+
+OpenPilot sends anonymous usage data by default (app opens, model/feature use, token counts). No chats, files, paths, or API keys. Turn it off during Getting Started or in **Settings → About**.
+
 ---
 
 ## Contributing

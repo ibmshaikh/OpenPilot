@@ -34,11 +34,16 @@ contextBridge.exposeInMainWorld("onecode", {
     saveTinyFish: (payload) => ipcRenderer.invoke("settings:tinyfish:save", payload),
     getOnboarding: () => ipcRenderer.invoke("settings:onboarding:get"),
     saveOnboarding: (payload) => ipcRenderer.invoke("settings:onboarding:save", payload),
+    getTelemetry: () => ipcRenderer.invoke("settings:telemetry:get"),
+    saveTelemetry: (payload) => ipcRenderer.invoke("settings:telemetry:save", payload),
     getMemory: (workspacePath) => ipcRenderer.invoke("settings:memory:get", workspacePath),
     saveMemory: (payload) => ipcRenderer.invoke("settings:memory:save", payload),
     revealMemory: (payload) => ipcRenderer.invoke("settings:memory:reveal", payload),
     getUsage: () => ipcRenderer.invoke("settings:usage:get"),
     resetUsage: (payload) => ipcRenderer.invoke("settings:usage:reset", payload),
+  },
+  telemetry: {
+    track: (name, props) => ipcRenderer.invoke("telemetry:track", { name, props }),
   },
   skills: {
     list: (workspacePath) => ipcRenderer.invoke("skills:list", workspacePath),
