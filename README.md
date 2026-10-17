@@ -176,7 +176,7 @@ Auto-update uses the **zip** (macOS) and **NSIS** (Windows) artifacts. Releases 
 
 ## License
 
-MIT — see `package.json`. Use it, fork it, and ship improvements back if you can.
+MIT — see [LICENSE](LICENSE). Use it, fork it, and ship improvements back if you can.
 
 ---
 
